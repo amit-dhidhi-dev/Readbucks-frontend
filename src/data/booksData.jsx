@@ -1,0 +1,192 @@
+// data/booksData.js
+export const booksData = [
+  {
+    id: 1,
+    title: "The Psychology of Money",
+    author: "Morgan Housel",
+    price: 299,
+    category: "Finance",
+    rating: 4.5,
+    pages: 256,
+    language: "English",
+    isFeatured: true,
+    isBestseller: true,
+    description: "Timeless lessons on wealth, greed, and happiness",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 2,
+    title: "Atomic Habits",
+    author: "James Clear",
+    price: 399,
+    category: "Self-Help",
+    rating: 4.8,
+    pages: 320,
+    language: "English",
+    isFeatured: true,
+    isBestseller: true,
+    description: "Tiny changes, remarkable results",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 3,
+    title: "Ikigai",
+    author: "Héctor García",
+    price: 249,
+    category: "Lifestyle",
+    rating: 4.3,
+    pages: 208,
+    language: "English",
+    isFeatured: false,
+    isBestseller: true,
+    description: "The Japanese secret to a long and happy life",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 4,
+    title: "The Alchemist",
+    author: "Paulo Coelho",
+    price: 199,
+    category: "Fiction",
+    rating: 4.6,
+    pages: 208,
+    language: "English",
+    isFeatured: true,
+    isBestseller: false,
+    description: "A magical story about following your dreams",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 5,
+    title: "Rich Dad Poor Dad",
+    author: "Robert Kiyosaki",
+    price: 349,
+    category: "Finance",
+    rating: 4.4,
+    pages: 336,
+    language: "English",
+    isFeatured: false,
+    isBestseller: true,
+    description: "What the rich teach their kids about money",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 6,
+    title: "The Power of Now",
+    author: "Eckhart Tolle",
+    price: 279,
+    category: "Spirituality",
+    rating: 4.7,
+    pages: 236,
+    language: "English",
+    isFeatured: true,
+    isBestseller: false,
+    description: "A guide to spiritual enlightenment",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 7,
+    title: "Thinking, Fast and Slow",
+    author: "Daniel Kahneman",
+    price: 459,
+    category: "Psychology",
+    rating: 4.5,
+    pages: 499,
+    language: "English",
+    isFeatured: false,
+    isBestseller: true,
+    description: "How we make decisions",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 8,
+    title: "The 5 AM Club",
+    author: "Robin Sharma",
+    price: 329,
+    category: "Self-Help",
+    rating: 4.2,
+    pages: 336,
+    language: "English",
+    isFeatured: true,
+    isBestseller: false,
+    description: "Own your morning, elevate your life",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 9,
+    title: "Sapiens",
+    author: "Yuval Noah Harari",
+    price: 499,
+    category: "History",
+    rating: 4.7,
+    pages: 443,
+    language: "English",
+    isFeatured: true,
+    isBestseller: true,
+    description: "A brief history of humankind",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 10,
+    title: "The Subtle Art of Not Giving a F*ck",
+    author: "Mark Manson",
+    price: 299,
+    category: "Self-Help",
+    rating: 4.3,
+    pages: 224,
+    language: "English",
+    isFeatured: false,
+    isBestseller: true,
+    description: "A counterintuitive approach to living a good life",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 11,
+    title: "Deep Work",
+    author: "Cal Newport",
+    price: 379,
+    category: "Productivity",
+    rating: 4.6,
+    pages: 304,
+    language: "English",
+    isFeatured: true,
+    isBestseller: false,
+    description: "Rules for focused success in a distracted world",
+    image: "/api/placeholder/200/300"
+  },
+  {
+    id: 12,
+    title: "The 7 Habits of Highly Effective People",
+    author: "Stephen R. Covey",
+    price: 419,
+    category: "Self-Help",
+    rating: 4.5,
+    pages: 381,
+    language: "English",
+    isFeatured: false,
+    isBestseller: true,
+    description: "Powerful lessons in personal change",
+    image: "/api/placeholder/200/300"
+  }
+];
+
+export const categories = [
+  "All",
+  "Finance",
+  "Self-Help",
+  "Fiction",
+  "Lifestyle",
+  "Spirituality",
+  "Psychology",
+  "History",
+  "Productivity"
+];
+
+export const languages = ["All", "English", "Hindi", "Spanish", "French"];
+export const priceRanges = [
+  { label: "All", min: 0, max: 10000 },
+  { label: "Under ₹200", min: 0, max: 200 },
+  { label: "₹200 - ₹300", min: 200, max: 300 },
+  { label: "₹300 - ₹400", min: 300, max: 400 },
+  { label: "Over ₹400", min: 400, max: 10000 }
+];

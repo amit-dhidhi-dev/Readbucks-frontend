@@ -2,7 +2,7 @@
 // import './App.css'
 import Navbars from './components/Navbars'
 import HomePage from './pages/HomePage'
-import Footer from './components/footer'
+import Footer from './components/Footer'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import FAQ from './components/FAQ'
 import PrivacyPolicy from './components/PrivacyPolicy'
@@ -15,6 +15,11 @@ import QuizPage from './pages/QuizPage.'
 import LeaderboardPage from './pages/LeaderboardPage'
 import TestPage from './pages/TestPage'
 import QuizContestPage from './pages/QuizContestPage'
+import UserAccountPage from './pages/UserAccountPage'
+import AddToCartPage from './pages/AddToCartPage'
+import WishlistPage from './pages/WishListPage'
+import NotificationPage from './pages/NotificationPage'
+import BookPublishPage from './pages/BookPublishPage'
 
 
 function App() {
@@ -39,6 +44,11 @@ function App() {
           <Route path={import.meta.env.VITE_QUIZ_PAGE} element={<QuizPage />} />
           <Route path={import.meta.env.VITE_LEADERBOARD_PAGE} element={<LeaderboardPage />} />
           <Route path={import.meta.env.VITE_QUIZCONTEST_PAGE} element={<QuizContestPage />} />
+          <Route path={import.meta.env.VITE_ACCOUNT_PAGE} element={<UserAccountPage />} />
+          <Route path={import.meta.env.VITE_CART_PAGE} element={<AddToCartPage />} />
+          <Route path={import.meta.env.VITE_WISHLIST_PAGE} element={<WishlistPage />} />
+          <Route path={import.meta.env.VITE_NOTIFICATION_PAGE} element={<NotificationPage />} />
+          <Route path={import.meta.env.VITE_PUBLISH_BOOK_PAGE} element={<BookPublishPage />} />
         </Routes>
 
         <Footer />

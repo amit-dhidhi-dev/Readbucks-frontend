@@ -33,7 +33,7 @@ function Footer() {
                 <li><a href={import.meta.env.VITE_BOOKS_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">Books</a></li>
                 <li><a href={import.meta.env.VITE_QUIZCONTEST_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">Quiz Contests</a></li>
                 <li><a href={import.meta.env.VITE_LEADERBOARD_PAGE}  className="text-gray-300 hover:text-[#FF6A3D] transition">Leaderboard</a></li>
-                <li><a href="#" className="text-gray-300 hover:text-[#FF6A3D] transition">My Account</a></li>
+                <li><a href={import.meta.env.VITE_ACCOUNT_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">My Account</a></li>
               </ul>
             </div>
 

@@ -5,6 +5,7 @@ function Navbars() {
       const [isMenuOpen, setIsMenuOpen] = useState(false);
       const [searchQuery, setSearchQuery] = useState('');
       const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); 
+      
   return (
     <nav className="bg-[#1A2238] text-white sticky top-0 z-50 shadow-lg">
       {/* Top Bar */}
@@ -50,16 +51,16 @@ function Navbars() {
 
           {/* Icons */}
           <div className="flex items-center space-x-4 ml-4">
-            <button className="relative hover:text-[#F4B942] transition">
+            {/* <button className="relative hover:text-[#F4B942] transition">
               <Heart className="w-6 h-6" />
               <span className="absolute -top-2 -right-2 bg-[#FF6A3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
             </button>
             <button className="relative hover:text-[#F4B942] transition">
               <ShoppingCart className="w-6 h-6" />
               <span className="absolute -top-2 -right-2 bg-[#FF6A3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">5</span>
-            </button>
+            </button> */}
              <button className="relative hover:text-[#F4B942] transition">
-              <Bell className="w-6 h-6" />
+            <a href={import.meta.env.VITE_NOTIFICATION_PAGE}><Bell className="w-6 h-6" /></a>
               <span className="absolute -top-2 -right-2 bg-[#FF6A3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">2</span>
             </button>
             <button onClick={()=> setIsUserMenuOpen(!isUserMenuOpen)} className="hover:text-[#F4B942] transition">
@@ -68,15 +69,21 @@ function Navbars() {
 
             {/* when user icon clicked */}
            {isUserMenuOpen && (
-                <div onClick={()=> setIsUserMenuOpen(false)} className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <div onClick={()=> setIsUserMenuOpen(false)} className="absolute right-0 mt-42 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                   <a href={import.meta.env.VITE_NOTIFICATION_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Notification
+                  </a>
+                  <a href={import.meta.env.VITE_ACCOUNT_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     My Account
                   </a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    My Orders
+                  <a href={import.meta.env.VITE_CART_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Add to Cart
                   </a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <a href={import.meta.env.VITE_WISHLIST_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Wishlist
+                  </a>
+                 <a href={import.meta.env.VITE_PUBLISH_BOOK_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Publish your Book
                   </a>
                   <div className="border-t my-1"></div>
                   <a href={`${import.meta.env.VITE_LOGIN_PAGE}`} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

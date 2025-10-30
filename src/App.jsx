@@ -13,14 +13,18 @@ import LoginPage from './pages/LoginPage'
 import BooksPage from './pages/BooksPage'
 import QuizPage from './pages/QuizPage.'
 import LeaderboardPage from './pages/LeaderboardPage'
-import TestPage from './pages/TestPage'
 import QuizContestPage from './pages/QuizContestPage'
 import UserAccountPage from './pages/UserAccountPage'
 import AddToCartPage from './pages/AddToCartPage'
 import WishlistPage from './pages/WishListPage'
 import NotificationPage from './pages/NotificationPage'
 import BookPublishPage from './pages/BookPublishPage'
-
+import BookReaderPage from './pages/BookReaderPage'
+import WithdrawFunds from './components/account/WithdrawFunds'
+import PremiumPage from './pages/PremiumPage'
+import FeedbackWidget from './components/userFeedback/FeedbackWidget'
+import SuggestionsPage from './components/userFeedback/SuggestionsPage'
+import BookDetailsPage from './pages/BookDetailsPage'
 
 function App() {
 
@@ -49,8 +53,14 @@ function App() {
           <Route path={import.meta.env.VITE_WISHLIST_PAGE} element={<WishlistPage />} />
           <Route path={import.meta.env.VITE_NOTIFICATION_PAGE} element={<NotificationPage />} />
           <Route path={import.meta.env.VITE_PUBLISH_BOOK_PAGE} element={<BookPublishPage />} />
+          <Route path={import.meta.env.VITE_READ_BOOK_PAGE} element={<BookReaderPage />} />
+          <Route path={import.meta.env.VITE_WITHDRAW_FUNDS_PAGE} element={<WithdrawFunds />} />
+          <Route path={import.meta.env.VITE_PREMIUM_PAGE} element={<PremiumPage />} />
+          <Route path={import.meta.env.VITE_SUGGESTIONS_PAGE} element={<SuggestionsPage />} />
+          <Route path={import.meta.env.VITE_BOOK_DETAILS_PAGE} element={<BookDetailsPage />} />
         </Routes>
 
+        <FeedbackWidget />
         <Footer />
       </Router>
 

@@ -1,597 +1,689 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Trophy, 
-  Crown, 
-  Award, 
-  Star, 
-  TrendingUp, 
-  Users, 
+import React, { useState } from 'react';
+import {
+  User,
+  Book,
+  Trophy,
+  CreditCard,
+  Settings,
+  LogOut,
+  Eye,
+  LayoutDashboard,
+  Star,
   Calendar,
+  Award,
+  Wallet,
+  BarChart3,
+  Users,
+  DollarSign,
   BookOpen,
+  TrendingUp,
+  Edit3,
+  Trash2,
+  Plus,
+  FileText,
+  Download,
+  Share2,
+  X,
   Filter,
-  Search,
-  Medal,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Target
+  RefreshCw,
+  Link,
+  Facebook,
+  Twitter,
+  Linkedin,
+  MessageCircle,
+  Copy,
+  CheckCircle,
+  Eye as EyeIcon,
+  Users as UsersIcon,
+  TrendingUp as TrendingUpIcon
 } from 'lucide-react';
+import { FaBookReader, FaMedal, FaCoins } from 'react-icons/fa';
+import { useLocation } from "react-router-dom";
 
-const TestPage = () => {
-  const [leaderboardData, setLeaderboardData] = useState([]);
-  const [timeFilter, setTimeFilter] = useState('all-time');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('rank');
-  const [sortOrder, setSortOrder] = useState('asc');
-  const [isMobile, setIsMobile] = useState(false);
+const UserAccountPage = () => {
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const Tab = params.get("tab");
+  let initialTab = "profile"
+  const options = ["profile", "dashboard", "library", "published-books", "quizzes", "wallet", "settings"];
+  if (Tab && options.includes(Tab)) {
+    initialTab = Tab;
+  }
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [showBookForm, setShowBookForm] = useState(false);
+  const [editingBook, setEditingBook] = useState(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [selectedBookForAnalytics, setSelectedBookForAnalytics] = useState(null);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [selectedBookForPromotion, setSelectedBookForPromotion] = useState(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  // Sample leaderboard data - replace with actual API data
-  const sampleData = {
-    'all-time': [
-      {
-        id: 1,
-        rank: 1,
-        userName: 'BookWorm123',
-        score: 950,
-        timeTaken: '4:30',
-        accuracy: 95,
-        quizzesCompleted: 47,
-        prizesWon: 12,
-        joinDate: '2024-01-15',
-        avatar: '👑',
-        isCurrentUser: false
-      },
-      {
-        id: 2,
-        rank: 2,
-        userName: 'ReadMaster',
-        score: 920,
-        timeTaken: '4:45',
-        accuracy: 92,
-        quizzesCompleted: 42,
-        prizesWon: 8,
-        joinDate: '2024-02-10',
-        avatar: '🎯',
-        isCurrentUser: false
-      },
-      {
-        id: 3,
-        rank: 3,
-        userName: 'PageTurner',
-        score: 890,
-        timeTaken: '4:20',
-        accuracy: 89,
-        quizzesCompleted: 38,
-        prizesWon: 6,
-        joinDate: '2024-01-28',
-        avatar: '📖',
-        isCurrentUser: true
-      },
-      {
-        id: 4,
-        rank: 4,
-        userName: 'LiteraryGenius',
-        score: 870,
-        timeTaken: '4:55',
-        accuracy: 87,
-        quizzesCompleted: 35,
-        prizesWon: 5,
-        joinDate: '2024-03-05',
-        avatar: '🌟',
-        isCurrentUser: false
-      },
-      {
-        id: 5,
-        rank: 5,
-        userName: 'QuizChamp',
-        score: 850,
-        timeTaken: '4:35',
-        accuracy: 85,
-        quizzesCompleted: 32,
-        prizesWon: 4,
-        joinDate: '2024-02-20',
-        avatar: '🏆',
-        isCurrentUser: false
-      }
-    ],
-    'monthly': [
-      {
-        id: 1,
-        rank: 1,
-        userName: 'PageTurner',
-        score: 890,
-        timeTaken: '4:20',
-        accuracy: 89,
-        quizzesCompleted: 12,
-        prizesWon: 3,
-        joinDate: '2024-01-28',
-        avatar: '📖',
-        isCurrentUser: true
-      },
-      {
-        id: 2,
-        rank: 2,
-        userName: 'BookWorm123',
-        score: 870,
-        timeTaken: '4:30',
-        accuracy: 87,
-        quizzesCompleted: 10,
-        prizesWon: 2,
-        joinDate: '2024-01-15',
-        avatar: '👑',
-        isCurrentUser: false
-      }
-    ],
-    'weekly': [
-      {
-        id: 1,
-        rank: 1,
-        userName: 'PageTurner',
-        score: 450,
-        timeTaken: '4:20',
-        accuracy: 90,
-        quizzesCompleted: 5,
-        prizesWon: 1,
-        joinDate: '2024-01-28',
-        avatar: '📖',
-        isCurrentUser: true
-      },
-      {
-        id: 2,
-        rank: 2,
-        userName: 'LiteraryGenius',
-        score: 420,
-        timeTaken: '4:55',
-        accuracy: 84,
-        quizzesCompleted: 4,
-        prizesWon: 0,
-        joinDate: '2024-03-05',
-        avatar: '🌟',
-        isCurrentUser: false
-      }
-    ]
+  // Mock user data
+  const [userData, setUserData] = useState({
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    membership: 'Premium',
+    joinDate: '2024-01-15',
+    quizPoints: 1250,
+    walletBalance: 2500,
+    readingStreak: 15
+  });
+
+  // Dashboard stats data
+  const dashboardStats = {
+    totalBooks: 12,
+    totalSales: 2450,
+    totalEarnings: 1850.75,
+    totalReaders: 1560,
+    monthlyGrowth: 15.5,
+    activeQuizzes: 8,
+    booksRead: 23,
+    quizWins: 15
   };
 
-  useEffect(() => {
-    // Check screen size for mobile
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
+  // Mock published books data
+  const [publishedBooks, setPublishedBooks] = useState([
+    {
+      id: 1,
+      title: "The JavaScript Mastery",
+      cover: "📘",
+      category: "Programming",
+      price: 29.99,
+      sales: 245,
+      earnings: 735.00,
+      rating: 4.8,
+      status: "published",
+      lastUpdated: "2024-01-15",
+      readers: 1200,
+      quizParticipants: 345,
+      pages: 320,
+      language: "English",
+      description: "A comprehensive guide to mastering JavaScript programming"
+    },
+    {
+      id: 2,
+      title: "React Patterns",
+      cover: "⚛️",
+      category: "Web Development",
+      price: 24.99,
+      sales: 189,
+      earnings: 472.50,
+      rating: 4.6,
+      status: "published",
+      lastUpdated: "2024-01-10",
+      readers: 890,
+      quizParticipants: 234,
+      pages: 280,
+      language: "English",
+      description: "Advanced React patterns and best practices"
+    }
+  ]);
+
+  // Mock analytics data for books
+  const generateAnalyticsData = (bookId) => {
+    return {
+      bookId,
+      overview: {
+        totalViews: 12500,
+        uniqueReaders: 3200,
+        completionRate: 68,
+        avgReadingTime: '45min',
+        shares: 450
+      },
+      salesData: {
+        daily: [65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 80, 90],
+        monthly: [245, 189, 210, 195, 230, 245, 260, 240, 255, 270, 285, 300],
+        revenue: [735, 472, 630, 585, 690, 735, 780, 720, 765, 810, 855, 900]
+      },
+      readerDemographics: {
+        ageGroups: {
+          '18-24': 25,
+          '25-34': 45,
+          '35-44': 20,
+          '45+': 10
+        },
+        regions: {
+          'North America': 40,
+          'Europe': 30,
+          'Asia': 20,
+          'Other': 10
+        }
+      },
+      quizPerformance: {
+        participationRate: 72,
+        averageScore: 78,
+        topScores: [95, 92, 90, 88, 85],
+        completionRate: 65
+      }
     };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-
-    // Simulate API call
-    setLeaderboardData(sampleData[timeFilter]);
-
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, [timeFilter]);
-
-  const handleSort = (column) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
-    }
   };
 
-  const filteredData = leaderboardData
-    .filter(user => 
-      user.userName.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
-      
-      if (sortBy === 'userName') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-      
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
+  // Analytics Modal Component
+  const AnalyticsModal = ({ book, onClose }) => {
+    const analyticsData = generateAnalyticsData(book.id);
+    const [timeFrame, setTimeFrame] = useState('monthly');
 
-  const getRankIcon = (rank) => {
-    switch (rank) {
-      case 1:
-        return <Crown className="w-5 h-5 md:w-6 md:h-6 text-yellow-500 fill-current" />;
-      case 2:
-        return <Medal className="w-5 h-5 md:w-6 md:h-6 text-gray-400 fill-current" />;
-      case 3:
-        return <Medal className="w-5 h-5 md:w-6 md:h-6 text-orange-500 fill-current" />;
-      default:
-        return <span className="text-sm md:text-lg font-bold text-gray-600">#{rank}</span>;
-    }
-  };
-
-  const getRankBadgeColor = (rank) => {
-    switch (rank) {
-      case 1:
-        return 'from-yellow-400 to-orange-500 text-white';
-      case 2:
-        return 'from-gray-400 to-gray-600 text-white';
-      case 3:
-        return 'from-orange-400 to-red-500 text-white';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  // Mobile Card View
-  const MobileUserCard = ({ user }) => (
-    <div className={`bg-white rounded-xl shadow-md p-4 mb-3 border-l-4 ${
-      user.isCurrentUser 
-        ? 'border-blue-500 bg-blue-50' 
-        : user.rank <= 3 
-          ? 'border-yellow-400' 
-          : 'border-gray-200'
-    }`}>
-      {/* Header with Rank and User */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-            user.rank <= 3 ? `bg-gradient-to-r ${getRankBadgeColor(user.rank)}` : 'bg-gray-100'
-          }`}>
-            {getRankIcon(user.rank)}
-          </div>
-          <div className="ml-3">
-            <div className="flex items-center">
-              <span className="font-semibold text-gray-900">{user.userName}</span>
-              {user.isCurrentUser && (
-                <span className="ml-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-                  You
-                </span>
-              )}
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center p-6 border-b border-gray-200">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Book Analytics</h2>
+              <p className="text-gray-600">{book.title}</p>
             </div>
-            <div className="flex items-center text-xs text-gray-500">
-              <Calendar className="w-3 h-3 mr-1" />
-              Joined {new Date(user.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X size={20} />
+            </button>
           </div>
-        </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div className="text-center p-2 bg-gray-50 rounded-lg">
-          <div className="font-bold text-gray-900">{user.score}</div>
-          <div className="text-xs text-gray-600 flex items-center justify-center">
-            <Target className="w-3 h-3 mr-1" />
-            Score
-          </div>
-        </div>
-        <div className="text-center p-2 bg-gray-50 rounded-lg">
-          <div className="font-bold text-gray-900">{user.accuracy}%</div>
-          <div className="text-xs text-gray-600">Accuracy</div>
-        </div>
-        <div className="text-center p-2 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-center">
-            <BookOpen className="w-3 h-3 mr-1 text-gray-600" />
-            <span className="font-bold text-gray-900">{user.quizzesCompleted}</span>
-          </div>
-          <div className="text-xs text-gray-600">Quizzes</div>
-        </div>
-        <div className="text-center p-2 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-center">
-            <Award className="w-3 h-3 mr-1 text-yellow-500" />
-            <span className="font-bold text-gray-900">{user.prizesWon}</span>
-          </div>
-          <div className="text-xs text-gray-600">Prizes</div>
-        </div>
-      </div>
-
-      {/* Time Taken */}
-      <div className="mt-3 flex items-center justify-center text-xs text-gray-500 bg-gray-50 py-2 rounded-lg">
-        <Clock className="w-3 h-3 mr-1" />
-        Avg. Time: {user.timeTaken}
-      </div>
-    </div>
-  );
-
-  // Desktop Table Row
-  const DesktopTableRow = ({ user }) => (
-    <div className={`grid grid-cols-12 gap-4 p-4 md:p-6 items-center transition-all ${
-      user.isCurrentUser
-        ? 'bg-blue-50 border-l-4 border-blue-500'
-        : 'hover:bg-gray-50'
-    }`}>
-      {/* Rank */}
-      <div className="col-span-1 flex justify-center">
-        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center font-bold ${
-          user.rank <= 3 ? `bg-gradient-to-r ${getRankBadgeColor(user.rank)}` : ''
-        }`}>
-          {getRankIcon(user.rank)}
-        </div>
-      </div>
-
-      {/* User Info */}
-      <div className="col-span-4 md:col-span-3">
-        <div className="flex items-center">
-          <span className="text-2xl mr-3">{user.avatar}</span>
-          <div>
-            <div className="flex items-center">
-              <span className={`font-semibold ${
-                user.isCurrentUser ? 'text-blue-600' : 'text-gray-900'
-              }`}>
-                {user.userName}
-              </span>
-              {user.isCurrentUser && (
-                <span className="ml-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-                  You
-                </span>
-              )}
-            </div>
-            <div className="flex items-center text-sm text-gray-500">
-              <Calendar className="w-3 h-3 mr-1" />
-              Joined {new Date(user.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Score */}
-      <div className="col-span-3 md:col-span-2 text-center">
-        <div className="text-lg md:text-2xl font-bold text-gray-900">{user.score}</div>
-        <div className="text-xs md:text-sm text-gray-500 flex items-center justify-center">
-          <Clock className="w-3 h-3 mr-1" />
-          {user.timeTaken}
-        </div>
-      </div>
-
-      {/* Accuracy */}
-      <div className="col-span-2 md:col-span-2 text-center">
-        <div className="flex items-center justify-center space-x-1 md:space-x-2">
-          <div className="text-lg font-bold text-gray-900">{user.accuracy}%</div>
-          <div className={`w-2 h-2 rounded-full ${
-            user.accuracy >= 90 ? 'bg-green-500' :
-            user.accuracy >= 80 ? 'bg-yellow-500' : 'bg-red-500'
-          }`}></div>
-        </div>
-        <div className="text-xs md:text-sm text-gray-500">Accuracy</div>
-      </div>
-
-      {/* Quizzes Completed */}
-      <div className="col-span-2 text-center hidden md:block">
-        <div className="flex items-center justify-center">
-          <BookOpen className="w-4 h-4 text-gray-400 mr-2" />
-          <span className="text-lg font-semibold text-gray-900">{user.quizzesCompleted}</span>
-        </div>
-        <div className="text-sm text-gray-500">Completed</div>
-      </div>
-
-      {/* Prizes Won */}
-      <div className="col-span-2 text-center hidden md:block">
-        <div className="flex items-center justify-center">
-          <Award className="w-4 h-4 text-yellow-500 mr-2" />
-          <span className="text-lg font-semibold text-gray-900">{user.prizesWon}</span>
-        </div>
-        <div className="text-sm text-gray-500">Prizes</div>
-      </div>
-
-      {/* Mobile View Additional Info */}
-      <div className="col-span-4 md:hidden text-center">
-        <div className="flex justify-center space-x-4">
-          <div>
-            <BookOpen className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-            <span className="text-sm font-semibold text-gray-900">{user.quizzesCompleted}</span>
-          </div>
-          <div>
-            <Award className="w-4 h-4 text-yellow-500 mx-auto mb-1" />
-            <span className="text-sm font-semibold text-gray-900">{user.prizesWon}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 py-4 md:py-8 px-3 md:px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Trophy className="w-8 h-8 md:w-12 md:h-12 text-yellow-500 mr-3 md:mr-4" />
-            <h1 className="text-3xl md:text-5xl font-bold text-gray-900">Leaderboard</h1>
-          </div>
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-            Compete with readers worldwide and climb to the top! Top performers win exciting prizes.
-          </p>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6">
-            <div className="flex items-center">
-              <Users className="w-6 h-6 md:w-8 md:h-8 text-blue-500 mr-2 md:mr-3" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900">1,247</div>
-                <div className="text-xs md:text-sm text-gray-600">Total Participants</div>
+          <div className="p-6 space-y-6">
+            {/* Overview Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <EyeIcon size={20} className="text-blue-600" />
+                  <span className="text-sm text-blue-600">Views</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
+                  {analyticsData.overview.totalViews.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <UsersIcon size={20} className="text-green-600" />
+                  <span className="text-sm text-green-600">Readers</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
+                  {analyticsData.overview.uniqueReaders.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <TrendingUpIcon size={20} className="text-purple-600" />
+                  <span className="text-sm text-purple-600">Completion</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
+                  {analyticsData.overview.completionRate}%
+                </div>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <DollarSign size={20} className="text-orange-600" />
+                  <span className="text-sm text-orange-600">Sales</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
+                  {book.sales}
+                </div>
+              </div>
+              <div className="bg-red-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Share2 size={20} className="text-red-600" />
+                  <span className="text-sm text-red-600">Shares</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mt-2">
+                  {analyticsData.overview.shares}
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6">
-            <div className="flex items-center">
-              <Award className="w-6 h-6 md:w-8 md:h-8 text-green-500 mr-2 md:mr-3" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900">₹25,000</div>
-                <div className="text-xs md:text-sm text-gray-600">Total Prize Pool</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6">
-            <div className="flex items-center">
-              <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-purple-500 mr-2 md:mr-3" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900">156</div>
-                <div className="text-xs md:text-sm text-gray-600">Quizzes Completed</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6">
-            <div className="flex items-center">
-              <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-red-500 mr-2 md:mr-3" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold text-gray-900">Top 10</div>
-                <div className="text-xs md:text-sm text-gray-600">Win Prizes</div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Controls */}
-        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 mb-6 md:mb-8">
-          <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row gap-4 justify-between items-center">
-            {/* Time Filter */}
-            <div className="flex items-center space-x-3 w-full md:w-auto">
-              <Filter className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
-              <div className="flex bg-gray-100 rounded-lg p-1 flex-1 md:flex-none">
-                {['weekly', 'monthly', 'all-time'].map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setTimeFilter(filter)}
-                    className={`px-3 py-2 text-sm md:px-4 md:py-2 md:text-base rounded-md font-medium capitalize transition-all flex-1 ${
-                      timeFilter === filter
-                        ? 'bg-white shadow text-blue-600'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    {filter.replace('-', ' ')}
-                  </button>
+            {/* Time Frame Selector */}
+            <div className="flex space-x-2">
+              {['daily', 'weekly', 'monthly'].map((frame) => (
+                <button
+                  key={frame}
+                  onClick={() => setTimeFrame(frame)}
+                  className={`px-4 py-2 rounded-lg capitalize ${
+                    timeFrame === frame
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {frame}
+                </button>
+              ))}
+            </div>
+
+            {/* Sales Chart */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Sales Performance</h3>
+              <div className="h-64 flex items-end space-x-1">
+                {analyticsData.salesData[timeFrame].map((value, index) => (
+                  <div key={index} className="flex-1 flex flex-col items-center">
+                    <div
+                      className="w-full bg-gradient-to-t from-blue-500 to-blue-600 rounded-t transition-all duration-300 hover:from-blue-600 hover:to-blue-700"
+                      style={{ height: `${(value / Math.max(...analyticsData.salesData[timeFrame])) * 80}%` }}
+                    ></div>
+                    <div className="text-xs text-gray-500 mt-2">{index + 1}</div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Search */}
-            <div className="relative w-full md:w-64">
-              <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Leaderboard */}
-        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg overflow-hidden">
-          {/* Desktop Table Header */}
-          {!isMobile && (
-            <div className="hidden md:grid grid-cols-12 gap-4 p-6 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700">
-              <div className="col-span-1 text-center">Rank</div>
-              <div className="col-span-3">User</div>
-              <div 
-                className="col-span-2 text-center cursor-pointer hover:text-blue-600 flex items-center justify-center"
-                onClick={() => handleSort('score')}
-              >
-                Score
-                {sortBy === 'score' && (
-                  sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />
-                )}
-              </div>
-              <div 
-                className="col-span-2 text-center cursor-pointer hover:text-blue-600 flex items-center justify-center"
-                onClick={() => handleSort('accuracy')}
-              >
-                Accuracy
-                {sortBy === 'accuracy' && (
-                  sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />
-                )}
-              </div>
-              <div className="col-span-2 text-center">Quizzes</div>
-              <div className="col-span-2 text-center">Prizes</div>
-            </div>
-          )}
-
-          {/* Mobile Header */}
-          {isMobile && (
-            <div className="md:hidden p-4 bg-gray-50 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-700 text-center">
-                {timeFilter.replace('-', ' ').toUpperCase()} LEADERBOARD
-              </h3>
-              <p className="text-sm text-gray-500 text-center mt-1">
-                {filteredData.length} participants
-              </p>
-            </div>
-          )}
-
-          {/* Table Body */}
-          <div className="divide-y divide-gray-200">
-            {filteredData.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                No users found matching your search.
-              </div>
-            ) : isMobile ? (
-              // Mobile Card View
-              filteredData.map((user) => (
-                <MobileUserCard key={user.id} user={user} />
-              ))
-            ) : (
-              // Desktop Table View
-              filteredData.map((user) => (
-                <DesktopTableRow key={user.id} user={user} />
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Current User Stats */}
-        {filteredData.find(user => user.isCurrentUser) && (
-          <div className="mt-6 md:mt-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6 text-white">
-            <div className="flex flex-col md:flex-row items-center justify-between text-center md:text-left">
-              <div className="mb-3 md:mb-0">
-                <h3 className="text-lg md:text-xl font-bold mb-1 md:mb-2">Your Current Standing</h3>
-                <p className="text-blue-100 text-sm md:text-base">
-                  You are ranked #{filteredData.find(user => user.isCurrentUser).rank} in the {timeFilter} leaderboard
-                </p>
-              </div>
-              <div className="text-center md:text-right">
-                <div className="text-2xl md:text-3xl font-bold">
-                  #{filteredData.find(user => user.isCurrentUser).rank}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Reader Demographics */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Reader Demographics</h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Age Groups</h4>
+                    {Object.entries(analyticsData.readerDemographics.ageGroups).map(([age, percent]) => (
+                      <div key={age} className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-600">{age}</span>
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{ width: `${percent}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium w-8 text-right">{percent}%</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Regions</h4>
+                    {Object.entries(analyticsData.readerDemographics.regions).map(([region, percent]) => (
+                      <div key={region} className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-600">{region}</span>
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-500 h-2 rounded-full"
+                            style={{ width: `${percent}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium w-8 text-right">{percent}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-blue-100 text-sm md:text-base">Current Rank</div>
+              </div>
+
+              {/* Quiz Performance */}
+              <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Quiz Performance</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {analyticsData.quizPerformance.participationRate}%
+                      </div>
+                      <div className="text-sm text-blue-600">Participation</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {analyticsData.quizPerformance.averageScore}%
+                      </div>
+                      <div className="text-sm text-green-600">Avg Score</div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Top Scores</h4>
+                    <div className="flex space-x-2">
+                      {analyticsData.quizPerformance.topScores.map((score, index) => (
+                        <div key={index} className="flex-1 text-center p-2 bg-gray-50 rounded">
+                          <div className="font-semibold text-gray-900">{score}%</div>
+                          <div className="text-xs text-gray-500">#{index + 1}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Export Options */}
+            <div className="flex justify-end space-x-3">
+              <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <Download size={16} />
+                <span>Export PDF</span>
+              </button>
+              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                <RefreshCw size={16} />
+                <span>Refresh Data</span>
+              </button>
+            </div>
           </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Promote Modal Component
+  const PromoteModal = ({ book, onClose }) => {
+    const shareableLink = `https://bookhub.com/books/${book.id}`;
+    const referralCode = `BOOKHUB${book.id}REF`;
+
+    const handleCopyLink = async () => {
+      try {
+        await navigator.clipboard.writeText(shareableLink);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy link:', err);
+      }
+    };
+
+    const shareOnSocialMedia = (platform) => {
+      const text = `Check out "${book.title}" on BookHub! ${shareableLink}`;
+      let url = '';
+      
+      switch (platform) {
+        case 'twitter':
+          url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+          break;
+        case 'facebook':
+          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareableLink)}`;
+          break;
+        case 'linkedin':
+          url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareableLink)}`;
+          break;
+        case 'whatsapp':
+          url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+          break;
+      }
+      
+      window.open(url, '_blank', 'width=600,height=400');
+    };
+
+    const promotionMaterials = [
+      {
+        title: "Social Media Posts",
+        description: "Pre-written posts for different platforms",
+        content: [
+          `📚 Just published "${book.title}" on BookHub! Check it out and take the quiz to win prizes! ${shareableLink}`,
+          `🔥 New book alert! "${book.title}" is now available. Read, take the quiz, and earn rewards! ${shareableLink}`
+        ]
+      },
+      {
+        title: "Email Template",
+        description: "Template for email marketing",
+        content: [
+          `Subject: Discover "${book.title}" - New on BookHub!\n\nHi there,\n\nI'm excited to share my new book "${book.title}" is now available on BookHub! Read it, take the quiz, and you could win exciting prizes.\n\nGet your copy here: ${shareableLink}\n\nUse referral code: ${referralCode} for special benefits!\n\nBest regards,\n${userData.name}`
+        ]
+      },
+      {
+        title: "Referral Program",
+        description: "Share your unique referral code",
+        content: [
+          `Referral Code: ${referralCode}`,
+          `Share this code with friends for special discounts and rewards!`
+        ]
+      }
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center p-6 border-b border-gray-200">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Promote Your Book</h2>
+              <p className="text-gray-600">{book.title}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Shareable Link */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-900 mb-2">Shareable Link</h3>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={shareableLink}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  {copiedLink ? <CheckCircle size={16} /> : <Copy size={16} />}
+                  <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Share Buttons */}
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-3">Share on Social Media</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button
+                  onClick={() => shareOnSocialMedia('twitter')}
+                  className="flex items-center justify-center space-x-2 p-3 bg-[#1DA1F2] text-white rounded-lg hover:bg-[#1a8cd8] transition-colors"
+                >
+                  <Twitter size={20} />
+                  <span>Twitter</span>
+                </button>
+                <button
+                  onClick={() => shareOnSocialMedia('facebook')}
+                  className="flex items-center justify-center space-x-2 p-3 bg-[#4267B2] text-white rounded-lg hover:bg-[#365899] transition-colors"
+                >
+                  <Facebook size={20} />
+                  <span>Facebook</span>
+                </button>
+                <button
+                  onClick={() => shareOnSocialMedia('linkedin')}
+                  className="flex items-center justify-center space-x-2 p-3 bg-[#0077B5] text-white rounded-lg hover:bg-[#00669c] transition-colors"
+                >
+                  <Linkedin size={20} />
+                  <span>LinkedIn</span>
+                </button>
+                <button
+                  onClick={() => shareOnSocialMedia('whatsapp')}
+                  className="flex items-center justify-center space-x-2 p-3 bg-[#25D366] text-white rounded-lg hover:bg-[#20bd59] transition-colors"
+                >
+                  <MessageCircle size={20} />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Promotion Materials */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-800">Promotion Materials</h3>
+              {promotionMaterials.map((material, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-800 mb-1">{material.title}</h4>
+                  <p className="text-sm text-gray-600 mb-3">{material.description}</p>
+                  <div className="space-y-2">
+                    {material.content.map((content, contentIndex) => (
+                      <div key={contentIndex} className="relative">
+                        <textarea
+                          value={content}
+                          readOnly
+                          rows={content.split('\n').length + 1}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+                        />
+                        <button
+                          onClick={() => navigator.clipboard.writeText(content)}
+                          className="absolute top-2 right-2 p-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                        >
+                          <Copy size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Promotion Tips */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h3 className="font-semibold text-yellow-900 mb-2">Promotion Tips</h3>
+              <ul className="text-sm text-yellow-800 space-y-1">
+                <li>• Share during peak hours (9-11 AM, 7-9 PM)</li>
+                <li>• Use relevant hashtags for better reach</li>
+                <li>• Engage with readers in the comments</li>
+                <li>• Share quiz results and winner announcements</li>
+                <li>• Collaborate with other authors for cross-promotion</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Handler functions for buttons
+  const handleAnalyticsClick = (book) => {
+    setSelectedBookForAnalytics(book);
+    setShowAnalytics(true);
+  };
+
+  const handlePromoteClick = (book) => {
+    setSelectedBookForPromotion(book);
+    setShowPromoteModal(true);
+  };
+
+  // ... (rest of the code remains the same, including BookForm, PublishedBookCard, etc.)
+
+  // Updated PublishedBookCard with button handlers
+  const PublishedBookCard = ({ book, onEdit, onDelete }) => {
+    const getStatusColor = (status) => {
+      return status === 'published' 
+        ? 'bg-green-100 text-green-800 border-green-200' 
+        : 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    };
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center space-x-4">
+            <div className="text-4xl">{book.cover}</div>
+            <div>
+              <h3 className="font-semibold text-lg text-gray-900">{book.title}</h3>
+              <p className="text-gray-600 text-sm">{book.category}</p>
+              <p className="text-xs text-gray-500 mt-1">{book.pages} pages • {book.language}</p>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => onEdit(book)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Edit3 size={16} className="text-gray-600" />
+            </button>
+            <button
+              onClick={() => onDelete(book.id)}
+              className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <Trash2 size={16} className="text-red-600" />
+            </button>
+          </div>
+        </div>
+
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{book.description}</p>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-900">{book.readers}</div>
+            <div className="text-xs text-gray-600">Readers</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-900">{book.quizParticipants}</div>
+            <div className="text-xs text-gray-600">Quiz Participants</div>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <div className="text-xl font-bold text-gray-900">₹{book.price}</div>
+            <div className="text-sm text-gray-600">{book.sales} sales</div>
+          </div>
+          <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(book.status)}`}>
+            {book.status}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 text-center text-sm">
+          <div>
+            <div className="font-semibold text-gray-900">₹{book.earnings}</div>
+            <div className="text-gray-600">Earnings</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900 flex items-center justify-center">
+              <span>{book.rating}</span>
+              <span className="text-yellow-500 ml-1">★</span>
+            </div>
+            <div className="text-gray-600">Rating</div>
+          </div>
+          <div>
+            <div className="font-semibold text-gray-900">{book.sales}</div>
+            <div className="text-gray-600">Sales</div>
+          </div>
+        </div>
+
+        <div className="flex space-x-2 mt-4">
+          <button 
+            onClick={() => handleAnalyticsClick(book)}
+            className="flex-1 flex items-center justify-center space-x-2 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            <BarChart3 size={16} />
+            <span>Analytics</span>
+          </button>
+          <button 
+            onClick={() => handlePromoteClick(book)}
+            className="flex-1 flex items-center justify-center space-x-2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors"
+          >
+            <Share2 size={16} />
+            <span>Promote</span>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ... (rest of the component code remains the same)
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header and main content */}
+        {/* ... (same as before) */}
+
+        {/* Modals */}
+        {showAnalytics && selectedBookForAnalytics && (
+          <AnalyticsModal
+            book={selectedBookForAnalytics}
+            onClose={() => {
+              setShowAnalytics(false);
+              setSelectedBookForAnalytics(null);
+            }}
+          />
         )}
 
-        {/* Prize Information */}
-        <div className="mt-6 md:mt-8 bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-6">
-          <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4 flex items-center justify-center md:justify-start">
-            <Award className="w-5 h-5 md:w-6 md:h-6 text-yellow-500 mr-2" />
-            Prize Distribution
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-            {[
-              { rank: '1st', prize: '₹10,000', color: 'from-yellow-400 to-orange-500' },
-              { rank: '2nd', prize: '₹6,000', color: 'from-gray-400 to-gray-600' },
-              { rank: '3rd', prize: '₹4,000', color: 'from-orange-400 to-red-500' },
-              { rank: '4th-5th', prize: '₹2,000', color: 'from-blue-400 to-blue-600' },
-              { rank: '6th-10th', prize: '₹1,000', color: 'from-green-400 to-green-600' }
-            ].map((prize, index) => (
-              <div key={index} className="text-center">
-                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-r ${prize.color} flex items-center justify-center text-white font-bold text-xs md:text-sm mx-auto mb-2`}>
-                  {prize.rank}
-                </div>
-                <div className="font-semibold text-gray-900 text-sm md:text-base">{prize.prize}</div>
-                <div className="text-xs md:text-sm text-gray-600">Each</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {showPromoteModal && selectedBookForPromotion && (
+          <PromoteModal
+            book={selectedBookForPromotion}
+            onClose={() => {
+              setShowPromoteModal(false);
+              setSelectedBookForPromotion(null);
+              setCopiedLink(false);
+            }}
+          />
+        )}
+
+        {/* Book Form Modal */}
+        {showBookForm && (
+          <BookForm
+            book={editingBook}
+            onSave={handleSaveBook}
+            onClose={() => {
+              setShowBookForm(false);
+              setEditingBook(null);
+            }}
+          />
+        )}
       </div>
     </div>
   );
 };
 
-export default TestPage;
+export default UserAccountPage;

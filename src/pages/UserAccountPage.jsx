@@ -1,23 +1,67 @@
 import React, { useState } from 'react';
-import { 
-  User, 
-  Book, 
-  Trophy, 
-  CreditCard, 
-  Settings, 
-  LogOut,
-  Eye,
-  Download,
+import {
+  User,
+  Book,
+  Trophy,
+  Settings,
+  LayoutDashboard,
   Star,
   Calendar,
-  Award,
-  Wallet
+  Wallet,
+  BarChart3,
+  Users,
+  DollarSign,
+  BookOpen,
+  TrendingUp,
+  Edit3,
+  Trash2,
+  Plus,
+  FileText,
+  Download,
+  Share2,
+  X,
+  EyeIcon,
+  UsersIcon,
+  TrendingUpIcon,
+  RefreshCw,
+  Copy,
+  Twitter,
+  Facebook,
+  Linkedin,
+  MessageCircle,
+  CheckCircle
 } from 'lucide-react';
-import { FaBookReader, FaMedal, FaCoins } from 'react-icons/fa';
+import { useLocation } from "react-router-dom";
+import RenderProfile from '../components/account/renderProfile';
+import RenderDashboard from '../components/account/RenderDashboard';
+import RenderLibrary from '../components/account/RenderLibrary';
+import RenderPublishedBooks from '../components/account/RenderPublishedBooks';
+import RenderQuizHistory from '../components/account/RenderQuizHistory';
+import RenderWallet from '../components/account/RenderWallet';
+import RenderSettings from '../components/account/RenderSettings';
+import AnalyticsModal from '../components/account/AnalyticsModal';
+import PromoteModal from '../components/account/PromoteModal';
+import BookForm from '../components/account/BookForm';
 
 const UserAccountPage = () => {
-  const [activeTab, setActiveTab] = useState('profile');
-  
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const Tab = params.get("tab");
+  let initialTab = "profile"
+  const options = ["profile", "dashboard", "library", "published-books", "quizzes", "wallet", "settings"];
+  if (Tab && options.includes(Tab)) {
+    initialTab = Tab;
+  }
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [showBookForm, setShowBookForm] = useState(false);
+  const [editingBook, setEditingBook] = useState(null);
+
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [selectedBookForAnalytics, setSelectedBookForAnalytics] = useState(null);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [selectedBookForPromotion, setSelectedBookForPromotion] = useState(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   // Mock user data
   const [userData, setUserData] = useState({
     name: 'John Doe',
@@ -28,6 +72,267 @@ const UserAccountPage = () => {
     walletBalance: 2500,
     readingStreak: 15
   });
+
+  // Dashboard stats data
+  const dashboardStats = {
+    totalBooks: 12,
+    totalSales: 2450,
+    totalEarnings: 1850.75,
+    totalReaders: 1560,
+    monthlyGrowth: 15.5,
+    activeQuizzes: 8,
+    booksRead: 23,
+    quizWins: 15
+  };
+
+  // Mock published books data
+  const [publishedBooks, setPublishedBooks] = useState([
+    {
+      id: 1,
+      title: "The JavaScript Mastery",
+      cover: "📘",
+      category: "Programming",
+      price: 29.99,
+      sales: 245,
+      earnings: 735.00,
+      rating: 4.8,
+      status: "published",
+      lastUpdated: "2024-01-15",
+      readers: 1200,
+      quizParticipants: 345,
+      pages: 320,
+      language: "English",
+      description: "A comprehensive guide to mastering JavaScript programming"
+    },
+    {
+      id: 2,
+      title: "React Patterns",
+      cover: "⚛️",
+      category: "Web Development",
+      price: 24.99,
+      sales: 189,
+      earnings: 472.50,
+      rating: 4.6,
+      status: "published",
+      lastUpdated: "2024-01-10",
+      readers: 890,
+      quizParticipants: 234,
+      pages: 280,
+      language: "English",
+      description: "Advanced React patterns and best practices"
+    },
+    {
+      id: 3,
+      title: "AI for Beginners",
+      cover: "🤖",
+      category: "Artificial Intelligence",
+      price: 34.99,
+      sales: 156,
+      earnings: 545.44,
+      rating: 4.9,
+      status: "draft",
+      lastUpdated: "2024-01-05",
+      readers: 670,
+      quizParticipants: 189,
+      pages: 450,
+      language: "English",
+      description: "Introduction to Artificial Intelligence concepts"
+    }
+  ]);
+
+
+  // Promote Modal Component
+  // const PromoteModal = ({ book, onClose }) => {
+  //   const shareableLink = `https://bookhub.com/books/${book.id}`;
+  //   const referralCode = `BOOKHUB${book.id}REF`;
+
+  //   const handleCopyLink = async () => {
+  //     try {
+  //       await navigator.clipboard.writeText(shareableLink);
+  //       setCopiedLink(true);
+  //       setTimeout(() => setCopiedLink(false), 2000);
+  //     } catch (err) {
+  //       console.error('Failed to copy link:', err);
+  //     }
+  //   };
+
+  //   const shareOnSocialMedia = (platform) => {
+  //     const text = `Check out "${book.title}" on BookHub! ${shareableLink}`;
+  //     let url = '';
+
+  //     switch (platform) {
+  //       case 'twitter':
+  //         url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  //         break;
+  //       case 'facebook':
+  //         url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareableLink)}`;
+  //         break;
+  //       case 'linkedin':
+  //         url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareableLink)}`;
+  //         break;
+  //       case 'whatsapp':
+  //         url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  //         break;
+  //     }
+
+  //     window.open(url, '_blank', 'width=600,height=400');
+  //   };
+
+  //   const promotionMaterials = [
+  //     {
+  //       title: "Social Media Posts",
+  //       description: "Pre-written posts for different platforms",
+  //       content: [
+  //         `📚 Just published "${book.title}" on BookHub! Check it out and take the quiz to win prizes! ${shareableLink}`,
+  //         `🔥 New book alert! "${book.title}" is now available. Read, take the quiz, and earn rewards! ${shareableLink}`
+  //       ]
+  //     },
+  //     {
+  //       title: "Email Template",
+  //       description: "Template for email marketing",
+  //       content: [
+  //         `Subject: Discover "${book.title}" - New on BookHub!\n\nHi there,\n\nI'm excited to share my new book "${book.title}" is now available on BookHub! Read it, take the quiz, and you could win exciting prizes.\n\nGet your copy here: ${shareableLink}\n\nUse referral code: ${referralCode} for special benefits!\n\nBest regards,\n${userData.name}`
+  //       ]
+  //     },
+  //     {
+  //       title: "Referral Program",
+  //       description: "Share your unique referral code",
+  //       content: [
+  //         `Referral Code: ${referralCode}`,
+  //         `Share this code with friends for special discounts and rewards!`
+  //       ]
+  //     }
+  //   ];
+
+  //   return (
+  //     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  //       <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+  //         <div className="flex justify-between items-center p-6 border-b border-gray-200">
+  //           <div>
+  //             <h2 className="text-xl font-semibold text-gray-900">Promote Your Book</h2>
+  //             <p className="text-gray-600">{book.title}</p>
+  //           </div>
+  //           <button
+  //             onClick={onClose}
+  //             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+  //           >
+  //             <X size={20} />
+  //           </button>
+  //         </div>
+
+  //         <div className="p-6 space-y-6">
+  //           {/* Shareable Link */}
+  //           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+  //             <h3 className="font-semibold text-blue-900 mb-2">Shareable Link</h3>
+  //             <div className="flex space-x-2">
+  //               <input
+  //                 type="text"
+  //                 value={shareableLink}
+  //                 readOnly
+  //                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white"
+  //               />
+  //               <button
+  //                 onClick={handleCopyLink}
+  //                 className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+  //               >
+  //                 {copiedLink ? <CheckCircle size={16} /> : <Copy size={16} />}
+  //                 <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
+  //               </button>
+  //             </div>
+  //           </div>
+
+  //           {/* Quick Share Buttons */}
+  //           <div>
+  //             <h3 className="font-semibold text-gray-800 mb-3">Share on Social Media</h3>
+  //             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+  //               <button
+  //                 onClick={() => shareOnSocialMedia('twitter')}
+  //                 className="flex items-center justify-center space-x-2 p-3 bg-[#1DA1F2] text-white rounded-lg hover:bg-[#1a8cd8] transition-colors"
+  //               >
+  //                 <Twitter size={20} />
+  //                 <span>Twitter</span>
+  //               </button>
+  //               <button
+  //                 onClick={() => shareOnSocialMedia('facebook')}
+  //                 className="flex items-center justify-center space-x-2 p-3 bg-[#4267B2] text-white rounded-lg hover:bg-[#365899] transition-colors"
+  //               >
+  //                 <Facebook size={20} />
+  //                 <span>Facebook</span>
+  //               </button>
+  //               <button
+  //                 onClick={() => shareOnSocialMedia('linkedin')}
+  //                 className="flex items-center justify-center space-x-2 p-3 bg-[#0077B5] text-white rounded-lg hover:bg-[#00669c] transition-colors"
+  //               >
+  //                 <Linkedin size={20} />
+  //                 <span>LinkedIn</span>
+  //               </button>
+  //               <button
+  //                 onClick={() => shareOnSocialMedia('whatsapp')}
+  //                 className="flex items-center justify-center space-x-2 p-3 bg-[#25D366] text-white rounded-lg hover:bg-[#20bd59] transition-colors"
+  //               >
+  //                 <MessageCircle size={20} />
+  //                 <span>WhatsApp</span>
+  //               </button>
+  //             </div>
+  //           </div>
+
+  //           {/* Promotion Materials */}
+  //           <div className="space-y-4">
+  //             <h3 className="font-semibold text-gray-800">Promotion Materials</h3>
+  //             {promotionMaterials.map((material, index) => (
+  //               <div key={index} className="border border-gray-200 rounded-lg p-4">
+  //                 <h4 className="font-semibold text-gray-800 mb-1">{material.title}</h4>
+  //                 <p className="text-sm text-gray-600 mb-3">{material.description}</p>
+  //                 <div className="space-y-2">
+  //                   {material.content.map((content, contentIndex) => (
+  //                     <div key={contentIndex} className="relative">
+  //                       <textarea
+  //                         value={content}
+  //                         readOnly
+  //                         rows={content.split('\n').length + 1}
+  //                         className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+  //                       />
+  //                       <button
+  //                         onClick={() => navigator.clipboard.writeText(content)}
+  //                         className="absolute top-2 right-2 p-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+  //                       >
+  //                         <Copy size={14} />
+  //                       </button>
+  //                     </div>
+  //                   ))}
+  //                 </div>
+  //               </div>
+  //             ))}
+  //           </div>
+
+  //           {/* Promotion Tips */}
+  //           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+  //             <h3 className="font-semibold text-yellow-900 mb-2">Promotion Tips</h3>
+  //             <ul className="text-sm text-yellow-800 space-y-1">
+  //               <li>• Share during peak hours (9-11 AM, 7-9 PM)</li>
+  //               <li>• Use relevant hashtags for better reach</li>
+  //               <li>• Engage with readers in the comments</li>
+  //               <li>• Share quiz results and winner announcements</li>
+  //               <li>• Collaborate with other authors for cross-promotion</li>
+  //             </ul>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
+
+  // Handler functions for buttons
+  const handleAnalyticsClick = (book) => {
+    setSelectedBookForAnalytics(book);
+    setShowAnalytics(true);
+  };
+
+  const handlePromoteClick = (book) => {
+    setSelectedBookForPromotion(book);
+    setShowPromoteModal(true);
+  };
+
 
   // Mock purchased books
   const purchasedBooks = [
@@ -48,328 +353,255 @@ const UserAccountPage = () => {
       progress: 30,
       quizCompleted: false,
       quizScore: null
-    },
-    {
-      id: 3,
-      title: '1984',
-      author: 'George Orwell',
-      purchaseDate: '2024-02-15',
-      progress: 100,
-      quizCompleted: true,
-      quizScore: 92
     }
   ];
 
-  // Mock quiz history
-  const quizHistory = [
+  // Recent activity data
+  const recentActivity = [
     {
       id: 1,
-      bookTitle: 'The Great Gatsby',
+      type: 'quiz_completed',
+      title: 'Completed "The Great Gatsby" quiz',
+      points: 50,
       date: '2024-02-10',
-      score: 85,
-      prize: 500,
-      rank: 2
+      time: '14:30'
     },
     {
       id: 2,
-      bookTitle: '1984',
-      date: '2024-02-20',
-      score: 92,
-      prize: 1000,
-      rank: 1
-    }
-  ];
-
-  // Mock wallet transactions
-  const walletTransactions = [
-    {
-      id: 1,
-      type: 'credit',
-      amount: 500,
-      description: 'Quiz Prize - The Great Gatsby',
-      date: '2024-02-10'
-    },
-    {
-      id: 2,
-      type: 'credit',
-      amount: 1000,
-      description: 'Quiz Prize - 1984',
-      date: '2024-02-20'
-    },
-    {
-      id: 3,
-      type: 'debit',
-      amount: 200,
-      description: 'Book Purchase - To Kill a Mockingbird',
-      date: '2024-02-05'
+      type: 'book_purchased',
+      title: 'Purchased "To Kill a Mockingbird"',
+      points: -200,
+      date: '2024-02-05',
+      time: '10:15'
     }
   ];
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'library', label: 'My Library', icon: Book },
+    { id: 'published-books', label: 'Published Books', icon: FileText },
     { id: 'quizzes', label: 'Quiz History', icon: Trophy },
     { id: 'wallet', label: 'Wallet', icon: Wallet },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  const renderProfile = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Profile Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-            <input
-              type="text"
-              value={userData.name}
-              onChange={(e) => setUserData({...userData, name: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              value={userData.email}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
-              disabled
-            />
-          </div>
-        </div>
-      </div>
+  // Book Form Component
+  // const BookForm = ({ book, onSave, onClose }) => {
+  //   const [formData, setFormData] = useState(book || {
+  //     title: '',
+  //     category: '',
+  //     price: '',
+  //     description: '',
+  //     pages: '',
+  //     language: 'English',
+  //     status: 'draft'
+  //   });
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100">Membership</p>
-              <p className="text-2xl font-bold">{userData.membership}</p>
-            </div>
-            <FaBookReader className="text-3xl" />
-          </div>
-        </div>
+  //   const handleSubmit = (e) => {
+  //     e.preventDefault();
+  //     onSave(formData);
+  //   };
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100">Quiz Points</p>
-              <p className="text-2xl font-bold">{userData.quizPoints}</p>
-            </div>
-            <FaMedal className="text-3xl" />
-          </div>
-        </div>
+  //   const handleChange = (e) => {
+  //     setFormData({
+  //       ...formData,
+  //       [e.target.name]: e.target.value
+  //     });
+  //   };
 
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100">Wallet Balance</p>
-              <p className="text-2xl font-bold">₹{userData.walletBalance}</p>
-            </div>
-            <FaCoins className="text-3xl" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  //   return (
+  //     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  //       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+  //         <div className="flex justify-between items-center p-6 border-b border-gray-200">
+  //           <h2 className="text-xl font-semibold text-gray-900">
+  //             {book ? 'Edit Book' : 'Add New Book'}
+  //           </h2>
+  //           <button
+  //             onClick={onClose}
+  //             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+  //           >
+  //             <Trash2 size={20} />
+  //           </button>
+  //         </div>
 
-  const renderLibrary = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">My Library</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {purchasedBooks.map((book) => (
-          <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">{book.title}</h3>
-              <p className="text-gray-600 mb-4">by {book.author}</p>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Progress</span>
-                  <span className="font-medium">{book.progress}%</span>
-                </div>
-                
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full" 
-                    style={{ width: `${book.progress}%` }}
-                  ></div>
-                </div>
+  //         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+  //           <div>
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Book Title *
+  //             </label>
+  //             <input
+  //               type="text"
+  //               name="title"
+  //               value={formData.title}
+  //               onChange={handleChange}
+  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  //               required
+  //             />
+  //           </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Quiz Status</span>
-                  <span className={`font-medium ${book.quizCompleted ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {book.quizCompleted ? `Score: ${book.quizScore}%` : 'Pending'}
-                  </span>
-                </div>
-              </div>
+  //           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  //             <div>
+  //               <label className="block text-sm font-medium text-gray-700 mb-2">
+  //                 Category *
+  //               </label>
+  //               <select
+  //                 name="category"
+  //                 value={formData.category}
+  //                 onChange={handleChange}
+  //                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  //                 required
+  //               >
+  //                 <option value="">Select Category</option>
+  //                 <option value="Programming">Programming</option>
+  //                 <option value="Web Development">Web Development</option>
+  //                 <option value="Artificial Intelligence">Artificial Intelligence</option>
+  //                 <option value="Fiction">Fiction</option>
+  //                 <option value="Non-Fiction">Non-Fiction</option>
+  //               </select>
+  //             </div>
 
-              <div className="mt-4 flex space-x-2">
-                <button className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200 flex items-center justify-center space-x-2">
-                  <Eye size={16} />
-                  <span>Read</span>
-                </button>
-                <button className="flex-1 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition duration-200 flex items-center justify-center space-x-2">
-                  <Trophy size={16} />
-                  <span>Take Quiz</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  //             <div>
+  //               <label className="block text-sm font-medium text-gray-700 mb-2">
+  //                 Price (₹) *
+  //               </label>
+  //               <input
+  //                 type="number"
+  //                 name="price"
+  //                 value={formData.price}
+  //                 onChange={handleChange}
+  //                 step="0.01"
+  //                 min="0"
+  //                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  //                 required
+  //               />
+  //             </div>
+  //           </div>
 
-  const renderQuizHistory = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">Quiz History</h2>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prize</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {quizHistory.map((quiz) => (
-              <tr key={quiz.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{quiz.bookTitle}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{quiz.date}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{quiz.score}%</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <Award className={`mr-2 ${quiz.rank === 1 ? 'text-yellow-500' : 'text-gray-400'}`} size={16} />
-                    <span className="text-sm text-gray-900">#{quiz.rank}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-green-600">₹{quiz.prize}</div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+  //           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  //             <div>
+  //               <label className="block text-sm font-medium text-gray-700 mb-2">
+  //                 Pages
+  //               </label>
+  //               <input
+  //                 type="number"
+  //                 name="pages"
+  //                 value={formData.pages}
+  //                 onChange={handleChange}
+  //                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  //               />
+  //             </div>
 
-  const renderWallet = () => (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Wallet Balance</h2>
-        <p className="text-4xl font-bold">₹{userData.walletBalance}</p>
-        <p className="text-purple-100 mt-2">Available for withdrawal or book purchases</p>
-      </div>
+  //             <div>
+  //               <label className="block text-sm font-medium text-gray-700 mb-2">
+  //                 Language
+  //               </label>
+  //               <select
+  //                 name="language"
+  //                 value={formData.language}
+  //                 onChange={handleChange}
+  //                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  //               >
+  //                 <option value="English">English</option>
+  //                 <option value="Hindi">Hindi</option>
+  //                 <option value="Spanish">Spanish</option>
+  //                 <option value="French">French</option>
+  //               </select>
+  //             </div>
+  //           </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Transaction History</h3>
-        <div className="space-y-4">
-          {walletTransactions.map((transaction) => (
-            <div key={transaction.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-full ${transaction.type === 'credit' ? 'bg-green-100' : 'bg-red-100'}`}>
-                  {transaction.type === 'credit' ? (
-                    <FaCoins className="text-green-600" />
-                  ) : (
-                    <CreditCard className="text-red-600" size={20} />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-800">{transaction.description}</p>
-                  <p className="text-sm text-gray-500">{transaction.date}</p>
-                </div>
-              </div>
-              <div className={`text-lg font-semibold ${transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                {transaction.type === 'credit' ? '+' : '-'}₹{transaction.amount}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+  //           <div>
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Description
+  //             </label>
+  //             <textarea
+  //               name="description"
+  //               value={formData.description}
+  //               onChange={handleChange}
+  //               rows="4"
+  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  //             />
+  //           </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-        <div className="flex space-x-4">
-          <button className="bg-green-500 text-white py-2 px-6 rounded-md hover:bg-green-600 transition duration-200">
-            Withdraw Funds
-          </button>
-          <button className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600 transition duration-200">
-            Buy More Books
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  //           <div>
+  //             <label className="block text-sm font-medium text-gray-700 mb-2">
+  //               Status
+  //             </label>
+  //             <select
+  //               name="status"
+  //               value={formData.status}
+  //               onChange={handleChange}
+  //               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  //             >
+  //               <option value="draft">Draft</option>
+  //               <option value="published">Published</option>
+  //             </select>
+  //           </div>
 
-  const renderSettings = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">Account Settings</h2>
-      
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Membership</h3>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-gray-600">Current Plan: <span className="font-semibold">{userData.membership}</span></p>
-            <p className="text-sm text-gray-500">Member since {userData.joinDate}</p>
-          </div>
-          <button className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200">
-            Upgrade Plan
-          </button>
-        </div>
-      </div>
+  //           <div className="flex justify-end space-x-3 pt-4">
+  //             <button
+  //               type="button"
+  //               onClick={onClose}
+  //               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+  //             >
+  //               Cancel
+  //             </button>
+  //             <button
+  //               type="submit"
+  //               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+  //             >
+  //               <Plus size={16} />
+  //               <span>{book ? 'Update Book' : 'Publish Book'}</span>
+  //             </button>
+  //           </div>
+  //         </form>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Notification Preferences</h3>
-        <div className="space-y-3">
-          <label className="flex items-center">
-            <input type="checkbox" className="rounded text-blue-500" defaultChecked />
-            <span className="ml-2 text-gray-700">Quiz reminders</span>
-          </label>
-          <label className="flex items-center">
-            <input type="checkbox" className="rounded text-blue-500" defaultChecked />
-            <span className="ml-2 text-gray-700">New book releases</span>
-          </label>
-          <label className="flex items-center">
-            <input type="checkbox" className="rounded text-blue-500" />
-            <span className="ml-2 text-gray-700">Promotional emails</span>
-          </label>
-        </div>
-      </div>
+ 
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Danger Zone</h3>
-        <button className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition duration-200 flex items-center space-x-2">
-          <LogOut size={16} />
-          <span>Delete Account</span>
-        </button>
-      </div>
-    </div>
-  );
+  const handleSaveBook = (bookData) => {
+    if (editingBook) {
+      setPublishedBooks(publishedBooks.map(book =>
+        book.id === editingBook.id
+          ? { ...book, ...bookData, lastUpdated: new Date().toISOString().split('T')[0] }
+          : book
+      ));
+    } else {
+      const newBook = {
+        id: publishedBooks.length + 1,
+        ...bookData,
+        cover: '📚',
+        sales: 0,
+        earnings: 0,
+        rating: 0,
+        readers: 0,
+        quizParticipants: 0,
+        lastUpdated: new Date().toISOString().split('T')[0]
+      };
+      setPublishedBooks([...publishedBooks, newBook]);
+    }
+    setShowBookForm(false);
+    setEditingBook(null);
+  };
 
+
+ 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
               {userData.name.charAt(0)}
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-800">{userData.name}</h1>
               <p className="text-gray-600">{userData.email}</p>
-              <div className="flex items-center space-x-4 mt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
                 <div className="flex items-center space-x-1 text-sm text-gray-500">
                   <Calendar size={16} />
                   <span>Joined {userData.joinDate}</span>
@@ -394,11 +626,10 @@ const UserAccountPage = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-md transition duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-blue-500 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-md transition duration-200 ${activeTab === tab.id
+                      ? 'bg-blue-500 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                   >
                     <IconComponent size={20} />
                     <span className="font-medium">{tab.label}</span>
@@ -409,15 +640,55 @@ const UserAccountPage = () => {
           </div>
 
           {/* Content Area */}
-          <div className="flex-1">
-            {activeTab === 'profile' && renderProfile()}
-            {activeTab === 'library' && renderLibrary()}
-            {activeTab === 'quizzes' && renderQuizHistory()}
-            {activeTab === 'wallet' && renderWallet()}
-            {activeTab === 'settings' && renderSettings()}
+          <div className="flex-1 min-w-0">
+            {activeTab === 'profile' && <RenderProfile userData={userData} setUserData={setUserData} />}
+            {activeTab === 'dashboard' && <RenderDashboard recentActivity={recentActivity} purchasedBooks={purchasedBooks} dashboardStats={dashboardStats} />}
+            {activeTab === 'library' && <RenderLibrary purchasedBooks={purchasedBooks} />}
+            {activeTab === 'published-books' && <RenderPublishedBooks setEditingBook={setEditingBook} setShowBookForm={setShowBookForm} handleAnalyticsClick={handleAnalyticsClick} handlePromoteClick={handlePromoteClick} />}
+            {activeTab === 'quizzes' && <RenderQuizHistory />}
+            {activeTab === 'wallet' &&  <RenderWallet userData={userData} /> }
+            {activeTab === 'settings' && <RenderSettings userData={userData}  />}
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {showAnalytics && selectedBookForAnalytics && (
+        <AnalyticsModal
+          book={selectedBookForAnalytics}
+          onClose={() => {
+            setShowAnalytics(false);
+            setSelectedBookForAnalytics(null);
+          }}
+        />
+      )}
+
+      {showPromoteModal && selectedBookForPromotion && (
+        <PromoteModal
+          book={selectedBookForPromotion}
+          userData={userData}
+          onClose={() => {
+            setShowPromoteModal(false);
+            setSelectedBookForPromotion(null);
+            setCopiedLink(false);
+          }}
+        />
+      )}
+
+
+
+
+      {/* Book Form Modal */}
+      {showBookForm && (
+        <BookForm
+          book={editingBook}
+          onSave={handleSaveBook}
+          onClose={() => {
+            setShowBookForm(false);
+            setEditingBook(null);
+          }}
+        />
+      )}
     </div>
   );
 };

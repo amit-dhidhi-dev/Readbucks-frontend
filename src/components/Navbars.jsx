@@ -47,6 +47,7 @@ function Navbars() {
             <a href={import.meta.env.VITE_LEADERBOARD_PAGE} className="hover:text-[#F4B942] transition">Leaderboard</a>
             <a href={import.meta.env.VITE_ABOUT_PAGE} className="hover:text-[#F4B942] transition">About</a>
             <a href={import.meta.env.VITE_CONTACT_PAGE} className="hover:text-[#F4B942] transition">Contact</a>
+            <a href={import.meta.env.VITE_SUGGESTIONS_PAGE} className="hover:text-[#F4B942] transition">Suggestion</a>
           </div>
 
           {/* Icons */}
@@ -82,9 +83,7 @@ function Navbars() {
                   <a href={import.meta.env.VITE_WISHLIST_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Wishlist
                   </a>
-                 <a href={import.meta.env.VITE_PUBLISH_BOOK_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Publish your Book
-                  </a>
+               
                   <div className="border-t my-1"></div>
                   <a href={`${import.meta.env.VITE_LOGIN_PAGE}`} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Sign In

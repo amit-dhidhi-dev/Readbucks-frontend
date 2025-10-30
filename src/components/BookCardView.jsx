@@ -2,6 +2,8 @@
 import React from 'react';
 import { FaStar, FaBook, FaShoppingCart, FaEye, FaRupeeSign } from 'react-icons/fa';
 import './css/BookCardView.css'
+import { useNavigate } from 'react-router-dom';
+
 const BooksCardView = ({ 
   books, 
   onBookClick, 
@@ -10,6 +12,10 @@ const BooksCardView = ({
   viewMode = 'grid' // 'grid' or 'list'
 }) => {
   
+
+  // when preview or read button click
+   const navigate = useNavigate();
+
   // Render star rating
   const renderRating = (rating) => {
     return (
@@ -31,7 +37,7 @@ const BooksCardView = ({
 
   // Grid View
   const GridView = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {books.map(book => (
         <div
           key={book.id}
@@ -106,9 +112,11 @@ const BooksCardView = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     onPreview && onPreview(book);
+                    navigate(import.meta.env.VITE_READ_BOOK_PAGE);
                   }}
                   className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors tooltip"
                   title="Preview Book"
+
                 >
                   <FaEye className="text-gray-600" />
                 </button>

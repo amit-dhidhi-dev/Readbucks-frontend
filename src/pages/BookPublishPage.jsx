@@ -59,45 +59,7 @@ const BookPublishPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Navigation */}
-            {/* <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <a href="#" className="flex-shrink-0 flex items-center">
-                <i data-lucide="book-open" className="h-8 w-8 text-indigo-600"></i>
-                <span className="ml-2 text-xl font-bold text-gray-900">BookHub</span>
-              </a>
-              <div className="hidden md:ml-6 md:flex md:space-x-8">
-                <a href="#" className="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium text-gray-900">Dashboard</a>
-                <a href="#" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium text-gray-500 hover:text-gray-700">Discover</a>
-                <a href="#" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium text-gray-500 hover:text-gray-700">My Library</a>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <button className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700">
-                Publish New Book
-              </button>
-              <div className="ml-4 flex items-center md:ml-6">
-                <button className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
-                  <i data-lucide="bell" className="h-6 w-6"></i>
-                </button>
-                <div className="ml-3 relative">
-                  <div>
-                    <button className="max-w-xs flex items-center text-sm rounded-full focus:outline-none">
-                      <img className="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav> */}
-
-
-
-
+           
             {/* Main Content */}
             <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
 

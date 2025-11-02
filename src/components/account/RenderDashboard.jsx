@@ -1,11 +1,13 @@
 import React from 'react'
 import { BookOpen, DollarSign, Trophy, BarChart3, Users, Wallet, TrendingUp } from 'lucide-react'
+import { useNavigate } from 'react-router-dom';
 
 
 
 
+function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks , setActiveTab }) {
+    const navigate = useNavigate();
 
-function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks }) {
 
 
     const StatsCard = ({ title, value, icon: Icon, change, changeType, color = 'blue' }) => {
@@ -48,7 +50,7 @@ function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatsCard
                         title="Total Books Read"
-                        value={dashboardStats.booksRead}
+                        value={dashboardStats.books_completed || 0}
                         icon={BookOpen}
                         change={12}
                         changeType="positive"
@@ -56,15 +58,15 @@ function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks }) {
                     />
                     <StatsCard
                         title="Quiz Wins"
-                        value={dashboardStats.quizWins}
+                        value={dashboardStats.total_quiz_wins || 0}
                         icon={Trophy}
                         change={8}
                         changeType="positive"
                         color="green"
                     />
                     <StatsCard
-                        title="Active Quizzes"
-                        value={dashboardStats.activeQuizzes}
+                        title="Reading Time (mins)"
+                        value={dashboardStats.total_reading_time || 0  }
                         icon={BarChart3}
                         change={-2}
                         changeType="negative"
@@ -72,7 +74,7 @@ function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks }) {
                     />
                     <StatsCard
                         title="Total Earnings"
-                        value={`₹${dashboardStats.totalEarnings}`}
+                        value={`₹${dashboardStats.total_prize_money || 0}`}
                         icon={DollarSign}
                         change={15.5}
                         changeType="positive"
@@ -83,7 +85,7 @@ function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks }) {
                 {/* Rest of the dashboard content remains the same */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Recent Activity */}
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    {/* <div className="bg-white rounded-lg shadow-md p-6">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
                         <div className="space-y-4">
                             {recentActivity.map((activity) => (
@@ -109,7 +111,7 @@ function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks }) {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Reading Progress */}
                     <div className="bg-white rounded-lg shadow-md p-6">
@@ -143,19 +145,19 @@ function RenderDashboard({ dashboardStats, recentActivity, purchasedBooks }) {
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <button className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition duration-200 flex flex-col items-center space-y-2">
+                        <button onClick={()=> setActiveTab('library')} className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition duration-200 flex flex-col items-center space-y-2">
                             <BookOpen className="text-blue-600" size={24} />
                             <span className="text-sm font-medium text-gray-700">Continue Reading</span>
                         </button>
-                        <button className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition duration-200 flex flex-col items-center space-y-2">
+                        <button onClick={()=> navigate(import.meta.env.VITE_QUIZCONTEST_PAGE)} className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition duration-200 flex flex-col items-center space-y-2">
                             <Trophy className="text-green-600" size={24} />
                             <span className="text-sm font-medium text-gray-700">Take Quiz</span>
                         </button>
-                        <button className="p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition duration-200 flex flex-col items-center space-y-2">
+                        <button onClick={()=> navigate(import.meta.env.VITE_LEADERBOARD_PAGE)} className="p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition duration-200 flex flex-col items-center space-y-2">
                             <Users className="text-purple-600" size={24} />
                             <span className="text-sm font-medium text-gray-700">Leaderboard</span>
                         </button>
-                        <button className="p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition duration-200 flex flex-col items-center space-y-2">
+                        <button onClick={()=> navigate(import.meta.env.VITE_WITHDRAW_FUNDS_PAGE)} className="p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition duration-200 flex flex-col items-center space-y-2">
                             <Wallet className="text-orange-600" size={24} />
                             <span className="text-sm font-medium text-gray-700">Withdraw</span>
                         </button>

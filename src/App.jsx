@@ -1,4 +1,4 @@
-
+import { useEffect } from 'react'
 // import './App.css'
 import Navbars from './components/Navbars'
 import HomePage from './pages/HomePage'
@@ -25,10 +25,23 @@ import PremiumPage from './pages/PremiumPage'
 import FeedbackWidget from './components/userFeedback/FeedbackWidget'
 import SuggestionsPage from './components/userFeedback/SuggestionsPage'
 import BookDetailsPage from './pages/BookDetailsPage'
+import NotFoundPage from './pages/NotFoundPage'
+
+
 
 function App() {
 
-  // const appName = import.meta.env.VITE_WEBSITE_NAME;
+// useEffect(() => {
+//     // Initialize Facebook SDK
+//     window.fbAsyncInit = function () {
+//       window.FB.init({
+//         appId: import.meta.env.VITE_FACEBOOK_APP_ID,
+//         cookie: true,
+//         xfbml: true,
+//         version: "v19.0",
+//       });
+//     };
+//   }, []);
 
   return (
     <>
@@ -58,6 +71,9 @@ function App() {
           <Route path={import.meta.env.VITE_PREMIUM_PAGE} element={<PremiumPage />} />
           <Route path={import.meta.env.VITE_SUGGESTIONS_PAGE} element={<SuggestionsPage />} />
           <Route path={import.meta.env.VITE_BOOK_DETAILS_PAGE} element={<BookDetailsPage />} />
+
+          {/* 404 Page */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
         <FeedbackWidget />

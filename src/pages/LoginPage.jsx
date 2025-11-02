@@ -1,7 +1,12 @@
 // EnhancedLoginPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook, FaSpinner } from 'react-icons/fa';
+import { useGoogleLogin } from '@react-oauth/google';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { selectIsAuthenticated } from '../features/auth/authSlice';
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,44 +16,189 @@ const LoginPage = () => {
     email: false
   });
 
-  const handleGoogleLogin = async () => {
-    setLoading(prev => ({ ...prev, google: true }));
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Your actual Google OAuth implementation
-    console.log('Google authentication');
-    
-    setLoading(prev => ({ ...prev, google: false }));
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+      // setIsLogin(true)
+    }
+  }, [navigate, isAuthenticated])
+
+
+  // Google Login Handler
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setLoading(prev => ({ ...prev, google: true }));
+        const access_token = tokenResponse.access_token;
+
+        // 🔹 Send token to backend FastAPI
+        const res = await axios.post("http://127.0.0.1:8000/auth/google", {
+          access_token: access_token,
+        });
+
+
+        // 🔹 Optionally save in Redux or localStorage
+        localStorage.setItem("user", JSON.stringify(res.data));
+
+        alert("Login successful!");
+        // Optionally navigate to a different page or update UI
+        navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+      } catch (error) {
+        // console.error("Google sign in error:", error);
+
+        // 🔍 LOG THE BACKEND ERROR DETAILS
+        // if (error.response) {
+        //   console.error("Status:", error.response.status);
+        //   console.error("Error detail:", error.response.data);
+        //   console.error("Headers:", error.response.headers);
+
+        //   // Show the actual backend error
+        //   // const errorMsg = error.response.data?.detail || JSON.stringify(error.response.data);
+        //   // alert(`Login failed: ${errorMsg}`);
+        // } else if (error.request) {
+        //   console.error("No response received:", error.request);
+        //   alert("No response from server. Please check your connection.");
+        // } else {
+        //   console.error("Error:", error.message);
+        //   alert("Login failed, please try again.");
+        // }
+      } finally {
+        setLoading(prev => ({ ...prev, google: false }));
+      }
+    },
+    onError: () => {
+      alert("Google login failed!");
+    },
+  });
+
+
+  // facebook login handler
+
+  const [fbLoaded, setFbLoaded] = useState(false);
+
+  useEffect(() => {
+    // Check if script is already loaded
+    if (window.FB) {
+      setFbLoaded(true);
+      return;
+    }
+
+    // Load Facebook SDK
+    window.fbAsyncInit = function () {
+      window.FB.init({
+        appId: import.meta.env.VITE_FACEBOOK_APP_ID, // Replace with your App ID
+        cookie: true,
+        xfbml: true,
+        version: 'v18.0'
+      });
+
+      setFbLoaded(true);
+      // console.log('Facebook SDK loaded');
+    };
+
+    // Load the SDK script if not already present
+    if (!document.getElementById('facebook-jssdk')) {
+      const script = document.createElement('script');
+      script.id = 'facebook-jssdk';
+      script.src = 'https://connect.facebook.net/en_US/sdk.js';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  const handleFacebookLogin = () => {
+    if (!fbLoaded || !window.FB) {
+      setLoading(prev => ({ ...prev, facebook: true }));
+      alert('Facebook SDK is still loading. Please wait a moment and try again.');
+      return;
+    }
+
+    window.FB.login(
+      function (response) {
+        setLoading(prev => ({ ...prev, facebook: true }));
+        console.log('Facebook login response:', response);
+        if (response.authResponse) {
+          const accessToken = response.authResponse.accessToken;
+          // console.log("facebook_access_token", accessToken);
+
+          axios.post(`http://localhost:8000/auth/facebook?access_token=${accessToken}`)
+            .then(res => {
+              // 🔹 Optionally save in Redux or localStorage
+              localStorage.setItem("user", JSON.stringify(res.data));
+              navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+              // console.log("User:", res.data);
+              // alert(`Welcome ${res.data}`);
+            })
+            .catch(error => {
+              // console.error("Login error:", error);
+
+              // // Log the backend error response
+              // if (error.response) {
+              //   console.error("Error status:", error.response.status);
+              //   console.error("Error data:", error.response.data);
+              //   console.error("Error headers:", error.response.headers);
+
+              //   // Show the actual error message from backend
+              //   // alert(`Login failed: ${error.response.data.message || JSON.stringify(error.response.data)}`);
+              // } else {
+              //   // alert('Login failed. Please try again.');
+              // }
+            });
+          setLoading(prev => ({ ...prev, facebook: false }));
+        } else {
+          alert("Facebook login cancelled.");
+        }
+      },
+      { scope: "public_profile,email" }
+
+    );
   };
 
-  const handleFacebookLogin = async () => {
-    setLoading(prev => ({ ...prev, facebook: true }));
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Your actual Facebook OAuth implementation
-    console.log('Facebook authentication');
-    
-    setLoading(prev => ({ ...prev, facebook: false }));
-  };
 
+
+  // handle email form submit
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: ""
+  })
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setLoading(prev => ({ ...prev, email: true }));
-    
+
     // Handle email login/signup logic
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setLoading(prev => ({ ...prev, email: false }));
+    // await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // console.log("Form data submitted:", form);
+      const response = isLogin
+        ? await axios.post(`${import.meta.env.VITE_API_BASE_URL}users/login`, form)
+        : await axios.post(`${import.meta.env.VITE_API_BASE_URL}users/register`, form);
+
+      localStorage.setItem("user", JSON.stringify(response.data));
+      navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+
+      setLoading(prev => ({ ...prev, email: false }));
+    } catch (error) {
+      if (error.response) {
+        alert(error.response.data.detail);  // e.g. "User already exists"
+        // console.error("Login/Register error:", error);
+        setLoading(prev => ({ ...prev, email: false }));
+      } else {
+        alert("Server connection failed");
+        setLoading(prev => ({ ...prev, email: false }));
+      }
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        
+
         {/* Header with Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -58,8 +208,8 @@ const LoginPage = () => {
             {isLogin ? 'Welcome ' : 'Join Our Community'}
           </h1>
           <p className="text-gray-600">
-            {isLogin 
-              ? 'Access your library, take quizzes, and win prizes!' 
+            {isLogin
+              ? 'Access your library, take quizzes, and win prizes!'
               : 'Start your reading journey and compete for rewards'
             }
           </p>
@@ -86,6 +236,7 @@ const LoginPage = () => {
             onClick={handleFacebookLogin}
             disabled={loading.facebook}
             className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+
           >
             {loading.facebook ? (
               <FaSpinner className="animate-spin text-xl" />
@@ -99,17 +250,72 @@ const LoginPage = () => {
         </div>
 
         {/* Rest of the component remains similar but with loading states */}
-        {/* <div className="relative mb-6">
+        <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white text-gray-500">Or continue with email</span>
           </div>
-        </div> */}
+        </div>
 
-          {/* Form fields */}
-        {/* <form onSubmit={handleEmailSubmit} className="space-y-4">
+        {/* Form fields */}
+        <form onSubmit={handleEmailSubmit} className="space-y-4">
+
+          {!isLogin && (
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                placeholder="Enter your full name"
+              />
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              placeholder="Enter your email"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+              placeholder="Enter your password"
+            />
+          </div>
+
+          {/* {isLogin && (
+            <div className="flex items-center justify-between">
+              <label className="flex items-center">
+                <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              </label>
+              <a href="#" className="text-sm text-blue-600 hover:text-blue-500">
+                Forgot password?
+              </a>
+            </div>
+          )} */}
+
+
           <button
             type="submit"
             disabled={loading.email}
@@ -118,9 +324,9 @@ const LoginPage = () => {
             {loading.email && <FaSpinner className="animate-spin" />}
             {loading.email ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
           </button>
-        </form> */}
+        </form>
 
-        {/* <div className="text-center mt-6">
+        <div className="text-center mt-6">
           <p className="text-gray-600">
             {isLogin ? "New to our platform? " : "Already a member? "}
             <button
@@ -130,7 +336,7 @@ const LoginPage = () => {
               {isLogin ? 'Create account' : 'Sign in'}
             </button>
           </p>
-        </div> */}
+        </div>
 
         {/* Features */}
         <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">

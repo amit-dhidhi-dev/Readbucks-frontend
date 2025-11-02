@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   User,
   Book,
@@ -42,6 +42,12 @@ import RenderSettings from '../components/account/RenderSettings';
 import AnalyticsModal from '../components/account/AnalyticsModal';
 import PromoteModal from '../components/account/PromoteModal';
 import BookForm from '../components/account/BookForm';
+import { selectCurrentUser, fetchUserData, selectUserError, selectUserLoading } from '../features/auth/userSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectIsAuthenticated } from '../features/auth/authSlice';
+import UserLoading from '../components/loading/UserLoading';
+import { useNavigate } from 'react-router-dom';
+
 
 const UserAccountPage = () => {
   const { search } = useLocation();
@@ -61,6 +67,9 @@ const UserAccountPage = () => {
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [selectedBookForPromotion, setSelectedBookForPromotion] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
+
+
+  const navigate = useNavigate();
 
   // Mock user data
   const [userData, setUserData] = useState({
@@ -560,7 +569,7 @@ const UserAccountPage = () => {
   //   );
   // };
 
- 
+
 
   const handleSaveBook = (bookData) => {
     if (editingBook) {
@@ -588,7 +597,25 @@ const UserAccountPage = () => {
   };
 
 
- 
+  // fetch data while other things
+  const dispatch = useDispatch();
+  const user = useSelector(selectCurrentUser)
+  const loading = useSelector(selectUserLoading)
+  const error = useSelector(selectUserError)
+  const isAuthenticated = useSelector(selectIsAuthenticated)
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchUserData())
+    }
+  }, [dispatch, isAuthenticated]);
+
+  if (loading) return <div> <UserLoading /> </div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!user) return <div>No user data</div>;
+
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -596,19 +623,19 @@ const UserAccountPage = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              {userData.name.charAt(0)}
+              { !user ? null: user.profile_picture ? <img src={user.profile_picture} alt={user.display_name} className="w-16 h-16 rounded-full" /> :  user.display_name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-800">{userData.name}</h1>
-              <p className="text-gray-600">{userData.email}</p>
+              <h1 className="text-2xl font-bold text-gray-800">{user.display_name}</h1>
+              <p className="text-gray-600">{user.email}</p>
               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
                 <div className="flex items-center space-x-1 text-sm text-gray-500">
                   <Calendar size={16} />
-                  <span>Joined {userData.joinDate}</span>
+                  <span>Joined {new Date(user.created_at).toLocaleString()}  </span>
                 </div>
                 <div className="flex items-center space-x-1 text-sm text-gray-500">
-                  <Star size={16} />
-                  <span>{userData.readingStreak} day streak</span>
+                  {/* <Star size={16} /> */}
+                  {/* <span>{userData.readingStreak} day streak</span> */}
                 </div>
               </div>
             </div>
@@ -641,13 +668,13 @@ const UserAccountPage = () => {
 
           {/* Content Area */}
           <div className="flex-1 min-w-0">
-            {activeTab === 'profile' && <RenderProfile userData={userData} setUserData={setUserData} />}
-            {activeTab === 'dashboard' && <RenderDashboard recentActivity={recentActivity} purchasedBooks={purchasedBooks} dashboardStats={dashboardStats} />}
+            {activeTab === 'profile' && <RenderProfile userData={user} setUserData={setUserData} />}
+            {activeTab === 'dashboard' && <RenderDashboard recentActivity={recentActivity} purchasedBooks={purchasedBooks} dashboardStats={dashboardStats} setActiveTab={setActiveTab} />}
             {activeTab === 'library' && <RenderLibrary purchasedBooks={purchasedBooks} />}
             {activeTab === 'published-books' && <RenderPublishedBooks setEditingBook={setEditingBook} setShowBookForm={setShowBookForm} handleAnalyticsClick={handleAnalyticsClick} handlePromoteClick={handlePromoteClick} />}
             {activeTab === 'quizzes' && <RenderQuizHistory />}
-            {activeTab === 'wallet' &&  <RenderWallet userData={userData} /> }
-            {activeTab === 'settings' && <RenderSettings userData={userData}  />}
+            {activeTab === 'wallet' && <RenderWallet userData={userData} />}
+            {activeTab === 'settings' && <RenderSettings userData={userData} />}
           </div>
         </div>
       </div>

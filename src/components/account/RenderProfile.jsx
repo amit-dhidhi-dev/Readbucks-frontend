@@ -13,9 +13,10 @@ function RenderProfile({ userData, setUserData }) {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                             <input
                                 type="text"
-                                value={userData.name}
-                                onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                                value={userData.display_name}
+                                // onChange={(e) => setUserData({ ...userData, name: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled
                             />
                         </div>
                         <div>
@@ -35,7 +36,7 @@ function RenderProfile({ userData, setUserData }) {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-blue-100">Membership</p>
-                                <p className="text-2xl font-bold">{userData.membership}</p>
+                                <p className="text-2xl font-bold">{userData.membership_tier}</p>
                             </div>
                             <FaBookReader className="text-3xl" />
                         </div>
@@ -45,7 +46,7 @@ function RenderProfile({ userData, setUserData }) {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-green-100">Quiz Points</p>
-                                <p className="text-2xl font-bold">{userData.quizPoints}</p>
+                                <p className="text-2xl font-bold">{userData.quizPoints || 0}</p>
                             </div>
                             <FaMedal className="text-3xl" />
                         </div>
@@ -55,7 +56,7 @@ function RenderProfile({ userData, setUserData }) {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-purple-100">Wallet Balance</p>
-                                <p className="text-2xl font-bold">₹{userData.walletBalance}</p>
+                                <p className="text-2xl font-bold">₹{userData.walletBalance || 0}</p>
                             </div>
                             <FaCoins className="text-3xl" />
                         </div>

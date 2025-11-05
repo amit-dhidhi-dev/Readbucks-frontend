@@ -3,7 +3,7 @@ import axios from "axios";
 // ✅ Create a reusable userAPI object
 export const userApi = {
   getCurrentUser: async (token) => {
-     return axios.get(`${import.meta.env.VITE_API_BASE_URL}getCurrentUser`, {
+     return axios.get(`${import.meta.env.VITE_API_BASE_URL}/getCurrentUser`, {
       params: { token: token }
     });
   },

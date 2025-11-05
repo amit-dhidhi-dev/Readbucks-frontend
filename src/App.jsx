@@ -26,22 +26,20 @@ import FeedbackWidget from './components/userFeedback/FeedbackWidget'
 import SuggestionsPage from './components/userFeedback/SuggestionsPage'
 import BookDetailsPage from './pages/BookDetailsPage'
 import NotFoundPage from './pages/NotFoundPage'
-
-
+import { apiService } from './api/services/bookApi'
+import BookList from './components/book/bookList'
+import BookDetail from './components/book/BookDetails'
+import AdminBookList from './components/book/admin/adminBookList'
+import BookManagement from './components/book/BookManagement'
 
 function App() {
 
-// useEffect(() => {
-//     // Initialize Facebook SDK
-//     window.fbAsyncInit = function () {
-//       window.FB.init({
-//         appId: import.meta.env.VITE_FACEBOOK_APP_ID,
-//         cookie: true,
-//         xfbml: true,
-//         version: "v19.0",
-//       });
-//     };
-//   }, []);
+  useEffect(() => {
+    const token = JSON.parse(localStorage.getItem('user')).access_token;
+    if (token) {
+      apiService.setToken(token);
+    }
+  }, []);
 
   return (
     <>
@@ -71,6 +69,16 @@ function App() {
           <Route path={import.meta.env.VITE_PREMIUM_PAGE} element={<PremiumPage />} />
           <Route path={import.meta.env.VITE_SUGGESTIONS_PAGE} element={<SuggestionsPage />} />
           <Route path={import.meta.env.VITE_BOOK_DETAILS_PAGE} element={<BookDetailsPage />} />
+
+
+          {/* for Book */}
+          <Route path="/book" element={<BookList />} />
+          <Route path="/book/:bookId" element={<BookDetail />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin/books" element={<AdminBookList />} />
+          <Route path="/admin/books/create" element={<BookManagement />} />
+          <Route path="/admin/books/edit/:bookId" element={<BookManagement />} />
 
           {/* 404 Page */}
           <Route path="*" element={<NotFoundPage />} />

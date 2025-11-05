@@ -7,9 +7,9 @@ export const fetchUserData = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const token = getState().auth.accessToken;
-      console.log("token", token)
+      // console.log("token", token)
       const response = await userApi.getCurrentUser(token);
-      console.log('fetch user', response)
+      // console.log('fetch user', response)
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to fetch user data');

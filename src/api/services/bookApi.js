@@ -26,7 +26,7 @@ class ApiService {
   async handleResponse(response) {
     if (!response.ok) {
       const error = await response.json();
-      console.log("resoponse",(response))
+      // console.log("resoponse",(response))
       throw new Error(error.detail || 'Something went wrong');
     }
     return response.json();
@@ -41,7 +41,7 @@ class ApiService {
   }
 
   async post(url, data) {
-    console.log('this.getHeaders',this.getHeaders())
+    // console.log('this.getHeaders',this.getHeaders())
     const response = await fetch(`${API_BASE_URL}${url}`, {
       method: 'POST',
       headers: this.getHeaders(),

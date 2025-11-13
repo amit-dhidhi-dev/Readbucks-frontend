@@ -12,7 +12,7 @@ export const useBookForm = () => {
       setLoading(true);
       setError(null);
       setSuccess(false);
-      
+
       const result = await bookFormService.createBook(bookData);
       setSuccess(true);
       return result;
@@ -29,7 +29,7 @@ export const useBookForm = () => {
       setLoading(true);
       setError(null);
       setSuccess(false);
-      
+
       const result = await bookFormService.updateBook(bookId, bookData);
       setSuccess(true);
       return result;
@@ -54,6 +54,20 @@ export const useBookForm = () => {
     }
   };
 
+  const getUploadUrl = async (file_name, file_type) => {
+    try {
+      setLoading(true);
+      const result = await bookFormService.getUploadUrl(file_name, file_type);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const resetState = () => {
     setLoading(false);
     setError(null);
@@ -67,6 +81,7 @@ export const useBookForm = () => {
     createBook,
     updateBook,
     uploadImage,
-    resetState
+    resetState,
+    getUploadUrl
   };
 };

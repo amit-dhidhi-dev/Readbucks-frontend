@@ -5,9 +5,9 @@ export const bookService = {
   // Get all books with pagination and filters
   async getBooks(params = {}) {
     const queryParams = new URLSearchParams();
-    
+
     Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null) {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
         queryParams.append(key, params[key]);
       }
     });
@@ -59,5 +59,5 @@ export const bookService = {
   async purchaseBook(bookId, paymentData) {
     return apiService.post(`/books/${bookId}/purchase`, paymentData);
   }
-  
+
 };

@@ -27,10 +27,17 @@ import SuggestionsPage from './components/userFeedback/SuggestionsPage'
 import BookDetailsPage from './pages/BookDetailsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import { apiService } from './api/services/bookApi'
-import BookList from './components/book/bookList'
+import BookList from './components/book/BookList'
 import BookDetail from './components/book/BookDetails'
 import AdminBookList from './components/book/admin/adminBookList'
 import BookManagement from './components/book/BookManagement'
+import BookReader from './components/book/BookReader'
+import { pdfjs } from 'react-pdf';
+import EpubViewer from './components/book/EpubViewer'
+import Viewer from './components/book/Viewer'
+import Read from './components/book/read'
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function App() {
 
@@ -75,11 +82,16 @@ function App() {
           <Route path="/book" element={<BookList />} />
           <Route path="/book/:bookId" element={<BookDetail />} />
 
-          {/* Admin Routes */}
+          {/* for read pdf */}
+          <Route path='/readbook/:bookId' element={<BookReader />} />
+
+            {/* Admin Routes */}
           <Route path="/admin/books" element={<AdminBookList />} />
           <Route path="/admin/books/create" element={<BookManagement />} />
           <Route path="/admin/books/edit/:bookId" element={<BookManagement />} />
-
+          <Route path='/epub' element={<EpubViewer/>} />
+          <Route path='/view' element={<Viewer/>} />
+          <Route path='/read' element={<Read/>} />
           {/* 404 Page */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

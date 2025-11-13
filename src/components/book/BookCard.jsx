@@ -62,7 +62,7 @@ const BookCard = ({ book }) => {
 
         <div className="flex space-x-2">
           <Link 
-            to={`/books/${book.id}`}
+            to={`/book/${book.id}`}
             className="flex-1 bg-blue-500 text-white text-center py-2 rounded hover:bg-blue-600 transition-colors"
           >
             View Details

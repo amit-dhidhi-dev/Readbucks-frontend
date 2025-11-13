@@ -1,7 +1,8 @@
 // pages/BookManagement.jsx
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import BookForm from './BookForm';
+// import BookForm from './BookForm';
+import BookFormUpdate from './BookFormUpdate';
 import { useBook } from '../../assets/hooks/useBook';
 import LoadingSpinner from '../loading/LoadingSpinner';
 
@@ -47,7 +48,7 @@ const BookManagement = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <BookForm 
+      <BookFormUpdate 
         book={book}
         onSuccess={handleSuccess}
         onCancel={handleCancel}

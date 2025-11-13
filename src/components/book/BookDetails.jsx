@@ -5,10 +5,13 @@ import { useBook } from '../../assets/hooks/useBook';
 import { bookService } from '../../api/services/bookService';
 import LoadingSpinner from '../loading/LoadingSpinner';
 
+
 const BookDetail = () => {
   const { bookId } = useParams();
   const { book, loading, error } = useBook(bookId);
   const [activeTab, setActiveTab] = useState('description');
+
+ 
 
   const handlePurchase = async () => {
     try {
@@ -23,7 +26,9 @@ const BookDetail = () => {
   const handleReadBook = () => {
     // Track read and redirect to reading page
     bookService.incrementReads(bookId);
-    window.open(book.book_content_url, '_blank');
+    // window.open(book.book_content_url, '_blank');
+    window.open(`${import.meta.env.VITE_WEBSITE_URL}readbook/${bookId}`, '_blank');
+    // navigate(`${import.meta.env.VITE_WEBSITE_URL}/readbook/${bookId}`)
   };
 
   if (loading) return <LoadingSpinner text="Loading book details..." />;

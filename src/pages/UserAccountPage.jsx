@@ -47,7 +47,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAuthenticated } from '../features/auth/authSlice';
 import UserLoading from '../components/loading/UserLoading';
 import { useNavigate } from 'react-router-dom';
-
+import { useBooks } from '../assets/hooks/useBook';
 
 const UserAccountPage = () => {
   const { search } = useLocation();
@@ -68,6 +68,8 @@ const UserAccountPage = () => {
   const [selectedBookForPromotion, setSelectedBookForPromotion] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
+
+  
 
   const navigate = useNavigate();
 
@@ -93,6 +95,13 @@ const UserAccountPage = () => {
     booksRead: 23,
     quizWins: 15
   };
+
+
+
+
+
+
+
 
   // Mock published books data
   const [publishedBooks, setPublishedBooks] = useState([
@@ -332,6 +341,8 @@ const UserAccountPage = () => {
   // };
 
   // Handler functions for buttons
+ 
+ 
   const handleAnalyticsClick = (book) => {
     setSelectedBookForAnalytics(book);
     setShowAnalytics(true);
@@ -600,8 +611,8 @@ const UserAccountPage = () => {
   // fetch data while other things
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser)
-  const loading = useSelector(selectUserLoading)
-  const error = useSelector(selectUserError)
+  const userLoading = useSelector(selectUserLoading)
+  const userError = useSelector(selectUserError)
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   useEffect(() => {
@@ -610,8 +621,8 @@ const UserAccountPage = () => {
     }
   }, [dispatch, isAuthenticated]);
 
-  if (loading) return <div> <UserLoading /> </div>;
-  if (error) return <div>Error: {error}</div>;
+  if (userLoading) return <div> <UserLoading /> </div>;
+  if (userError) return <div>Error: {userError}</div>;
   if (!user) return <div>No user data</div>;
 
 

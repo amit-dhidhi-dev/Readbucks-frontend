@@ -15,6 +15,12 @@ export const bookService = {
     return apiService.get(`/books?${queryParams}`);
   },
 
+
+  // get user books
+  async getUserBooks() {
+    return apiService.get('/get-user-book');
+  },
+
   // Get single book by ID
   async getBookById(bookId) {
     return apiService.get(`/books/${bookId}`);
@@ -58,6 +64,11 @@ export const bookService = {
   // Purchase a book
   async purchaseBook(bookId, paymentData) {
     return apiService.post(`/books/${bookId}/purchase`, paymentData);
+  },
+
+  // delete book
+  async deleteBook(bookId) {
+    return apiService.delete(`/books/${bookId}`);
   }
 
 };

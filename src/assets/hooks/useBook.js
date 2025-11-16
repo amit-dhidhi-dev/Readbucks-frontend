@@ -71,3 +71,35 @@ export const useBook = (bookId) => {
     refetch: () => fetchBook(bookId)
   };
 };
+
+
+export const useUserBooks = () => {
+  const [books, setBooks] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchBook = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const bookData = await bookService.getUserBooks();     
+      setBooks(bookData.books || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBook();
+  },[]);
+
+  return {
+    books,
+    loading,
+    error,
+    refetch: () => fetchBook()
+  };
+};
+

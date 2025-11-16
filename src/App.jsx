@@ -71,12 +71,14 @@ function App() {
           <Route path={import.meta.env.VITE_CART_PAGE} element={<AddToCartPage />} />
           <Route path={import.meta.env.VITE_WISHLIST_PAGE} element={<WishlistPage />} />
           <Route path={import.meta.env.VITE_NOTIFICATION_PAGE} element={<NotificationPage />} />
-          <Route path={import.meta.env.VITE_PUBLISH_BOOK_PAGE} element={<BookPublishPage />} />
+          {/* <Route path={import.meta.env.VITE_PUBLISH_BOOK_PAGE} element={<BookPublishPage />} /> */}
           <Route path={import.meta.env.VITE_READ_BOOK_PAGE} element={<BookReaderPage />} />
           <Route path={import.meta.env.VITE_WITHDRAW_FUNDS_PAGE} element={<WithdrawFunds />} />
           <Route path={import.meta.env.VITE_PREMIUM_PAGE} element={<PremiumPage />} />
           <Route path={import.meta.env.VITE_SUGGESTIONS_PAGE} element={<SuggestionsPage />} />
           <Route path={import.meta.env.VITE_BOOK_DETAILS_PAGE} element={<BookDetailsPage />} />
+          <Route path={import.meta.env.VITE_PUBLISH_BOOK_PAGE} element={<BookManagement />} />
+          <Route path={import.meta.env.VITE_EDIT_BOOK_PAGE} element={<BookManagement />} />
 
 
           {/* for Book */}

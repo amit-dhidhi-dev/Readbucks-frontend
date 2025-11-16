@@ -3,18 +3,20 @@ import React from 'react';
 import { FaStar, FaBook, FaShoppingCart, FaEye, FaRupeeSign } from 'react-icons/fa';
 import './css/BookCardView.css'
 import { useNavigate } from 'react-router-dom';
+import { userApi } from '../api/userApi';
+import { selectIsAuthenticated } from '../features/auth/authSlice';
 
-const BooksCardView = ({ 
-  books, 
-  onBookClick, 
-  onAddToCart, 
+const BooksCardView = ({
+  books,
+  onBookClick,
+  onAddToCart,
   onPreview,
   viewMode = 'grid' // 'grid' or 'list'
 }) => {
-  
+
 
   // when preview or read button click
-   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // Render star rating
   const renderRating = (rating) => {
@@ -23,11 +25,10 @@ const BooksCardView = ({
         {[...Array(5)].map((_, i) => (
           <FaStar
             key={i}
-            className={`text-sm ${
-              i < Math.floor(rating) 
-                ? 'text-yellow-400 fill-current' 
+            className={`text-sm ${i < Math.floor(rating)
+                ? 'text-yellow-400 fill-current'
                 : 'text-gray-300'
-            }`}
+              }`}
           />
         ))}
         <span className="text-sm text-gray-600 ml-1">({rating})</span>
@@ -35,9 +36,37 @@ const BooksCardView = ({
     );
   };
 
+ const onPreviewHandle = async (book) => {
+    onPreview && onPreview(book);
+    navigate(import.meta.env.VITE_READ_BOOK_PAGE);
+    
+    if (selectIsAuthenticated) {
+        try {
+            const token = JSON.parse(localStorage.getItem('user')).access_token;
+            const book_dict = {
+                "book_id": book.id || 'book id',  
+                "book_name": book.title,
+                "book_author": book.author,
+                "book_cover": book.cover_image_url || "cover image",
+                "book_reading_progress": 0.0,
+            }
+
+            // console.log('book_dict', book_dict);
+
+            await userApi.addBookToUserLibrary(token, book_dict);
+            
+        } catch (error) {
+            console.error("Error adding book to library:", error);
+        }
+    }
+}
+
+
+
+
   // Grid View
   const GridView = () => (
-    <div  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {books.map(book => (
         <div
           key={book.id}
@@ -49,7 +78,7 @@ const BooksCardView = ({
             <div className="w-full h-48 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-xl flex items-center justify-center">
               <FaBook className="text-4xl text-blue-400" />
             </div>
-            
+
             {/* Badges */}
             <div className="absolute top-3 left-3 flex gap-2">
               {book.isFeatured && (
@@ -106,12 +135,13 @@ const BooksCardView = ({
                   {book.price}
                 </span>
               </div>
-              
+
               <div className="flex gap-2">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onPreview && onPreview(book);
+                    onPreviewHandle(book);
                     navigate(import.meta.env.VITE_READ_BOOK_PAGE);
                   }}
                   className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors tooltip"
@@ -164,7 +194,7 @@ const BooksCardView = ({
                   </h3>
                   <p className="text-gray-600 text-sm mb-2">by {book.author}</p>
                 </div>
-                
+
                 {/* Badges */}
                 <div className="flex gap-2 ml-4">
                   {book.isFeatured && (
@@ -190,7 +220,7 @@ const BooksCardView = ({
                   <div className="mb-3">
                     {renderRating(book.rating)}
                   </div>
-                  
+
                   <p className="text-gray-700 text-sm mb-3">
                     {book.description}
                   </p>
@@ -210,7 +240,7 @@ const BooksCardView = ({
                       {book.price}
                     </span>
                   </div>
-                  
+
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={(e) => {

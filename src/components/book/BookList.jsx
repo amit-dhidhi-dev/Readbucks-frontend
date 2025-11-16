@@ -19,6 +19,8 @@ const BookList = () => {
 
   const { books, loading, error, pagination, refetch } = useBooks(filters);
 
+
+// console.log('books', books[0]);
   const handleFilterChange = (newFilters) => {
     setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
   };

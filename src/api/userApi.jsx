@@ -7,6 +7,19 @@ export const userApi = {
       params: { token: token }
     });
   },
+
+  addBookToUserLibrary: async (token, libraryData) => {
+    return axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/users/library`,
+      libraryData,
+      {
+        params: { token: token }
+      }
+    );
+  },
+
+
+
 };
 
 // ✅ Axios interceptor to automatically attach token to every request

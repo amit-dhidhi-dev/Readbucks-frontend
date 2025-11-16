@@ -10,18 +10,23 @@ const BookManagement = () => {
   const navigate = useNavigate();
   const { bookId } = useParams();
   const isEditMode = Boolean(bookId);
-  
-  const { book, loading: bookLoading, error: bookError } = useBook(bookId);
+
+  console.log('Book ID from params:', bookId);
+  const { book, loading: bookLoading, error: bookError } = useBook(String(bookId));
+  console.log('Fetched book data:', book);
+
+
+
 
   const handleSuccess = () => {
     // Redirect to books list or show success message
     setTimeout(() => {
-      navigate('/admin/books');
+      navigate(`${import.meta.env.VITE_ACCOUNT_PAGE}?tab=published-books`);
     }, 2000);
   };
 
   const handleCancel = () => {
-    navigate('/admin/books');
+    navigate(`${import.meta.env.VITE_ACCOUNT_PAGE}?tab=published-books`);
   };
 
   if (isEditMode && bookLoading) {
@@ -36,8 +41,8 @@ const BookManagement = () => {
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">Error loading book: {bookError}</div>
-        <button 
-          onClick={() => navigate('/admin/books')}
+        <button
+          onClick={() => navigate(`${import.meta.env.VITE_ACCOUNT_PAGE}?tab=published-books`)}
           className="bg-blue-500 text-white px-6 py-2 rounded-lg"
         >
           Back to Books
@@ -48,7 +53,7 @@ const BookManagement = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <BookFormUpdate 
+      <BookFormUpdate
         book={book}
         onSuccess={handleSuccess}
         onCancel={handleCancel}

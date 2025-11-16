@@ -1,689 +1,577 @@
-import React, { useState } from 'react';
-import {
-  User,
-  Book,
-  Trophy,
-  CreditCard,
-  Settings,
-  LogOut,
-  Eye,
-  LayoutDashboard,
-  Star,
-  Calendar,
-  Award,
-  Wallet,
-  BarChart3,
-  Users,
-  DollarSign,
-  BookOpen,
-  TrendingUp,
-  Edit3,
-  Trash2,
-  Plus,
-  FileText,
-  Download,
-  Share2,
-  X,
-  Filter,
-  RefreshCw,
-  Link,
-  Facebook,
-  Twitter,
-  Linkedin,
-  MessageCircle,
-  Copy,
-  CheckCircle,
-  Eye as EyeIcon,
-  Users as UsersIcon,
-  TrendingUp as TrendingUpIcon
-} from 'lucide-react';
-import { FaBookReader, FaMedal, FaCoins } from 'react-icons/fa';
-import { useLocation } from "react-router-dom";
+// Read.jsx — Converted to use epub.js (full reader)
+// Notes:
+// - Uses epubjs (import ePub from 'epubjs') to manage rendering (rendition) internally.
+// - Supports: file upload, TOC, pagination (paginated/continuous), themes (dark/light), font size, line height, font family,
+//   bookmarks (CFI-based), save/restore location, keyboard nav, auto-hide controls, and basic search (uses book.search if available).
+// - Keep in mind: some epub.js features depend on the version. If `book.search` isn't available you can add a text-index step.
 
-const UserAccountPage = () => {
-  const { search } = useLocation();
-  const params = new URLSearchParams(search);
-  const Tab = params.get("tab");
-  let initialTab = "profile"
-  const options = ["profile", "dashboard", "library", "published-books", "quizzes", "wallet", "settings"];
-  if (Tab && options.includes(Tab)) {
-    initialTab = Tab;
-  }
-  const [activeTab, setActiveTab] = useState(initialTab);
-  const [showBookForm, setShowBookForm] = useState(false);
-  const [editingBook, setEditingBook] = useState(null);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [selectedBookForAnalytics, setSelectedBookForAnalytics] = useState(null);
-  const [showPromoteModal, setShowPromoteModal] = useState(false);
-  const [selectedBookForPromotion, setSelectedBookForPromotion] = useState(null);
-  const [copiedLink, setCopiedLink] = useState(false);
+import React, { useEffect, useRef, useState } from 'react';
+import ePub from 'epubjs';
+import { Book, ChevronLeft, ChevronRight, Menu, X, Upload, Search, Settings, Bookmark, Moon, Sun, ZoomIn, ZoomOut } from 'lucide-react';
 
-  // Mock user data
-  const [userData, setUserData] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    membership: 'Premium',
-    joinDate: '2024-01-15',
-    quizPoints: 1250,
-    walletBalance: 2500,
-    readingStreak: 15
-  });
 
-  // Dashboard stats data
-  const dashboardStats = {
-    totalBooks: 12,
-    totalSales: 2450,
-    totalEarnings: 1850.75,
-    totalReaders: 1560,
-    monthlyGrowth: 15.5,
-    activeQuizzes: 8,
-    booksRead: 23,
-    quizWins: 15
-  };
 
-  // Mock published books data
-  const [publishedBooks, setPublishedBooks] = useState([
-    {
-      id: 1,
-      title: "The JavaScript Mastery",
-      cover: "📘",
-      category: "Programming",
-      price: 29.99,
-      sales: 245,
-      earnings: 735.00,
-      rating: 4.8,
-      status: "published",
-      lastUpdated: "2024-01-15",
-      readers: 1200,
-      quizParticipants: 345,
-      pages: 320,
-      language: "English",
-      description: "A comprehensive guide to mastering JavaScript programming"
-    },
-    {
-      id: 2,
-      title: "React Patterns",
-      cover: "⚛️",
-      category: "Web Development",
-      price: 24.99,
-      sales: 189,
-      earnings: 472.50,
-      rating: 4.6,
-      status: "published",
-      lastUpdated: "2024-01-10",
-      readers: 890,
-      quizParticipants: 234,
-      pages: 280,
-      language: "English",
-      description: "Advanced React patterns and best practices"
+export default function TestPage() {
+  const viewerRef = useRef(null);
+  const bookRef = useRef(null); // epub.js Book instance
+  const renditionRef = useRef(null); // epub.js Rendition
+
+  const [fileName, setFileName] = useState(null);
+  const [toc, setToc] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState(null); // cfi or location object
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [coverImage, setCoverImage] = useState(null);
+
+  // reader settings
+  const [fontSize, setFontSize] = useState(18);
+  const [fontFamily, setFontFamily] = useState('serif');
+  const [lineHeight, setLineHeight] = useState(1.8);
+  const [darkMode, setDarkMode] = useState(false);
+  const [pageMode, setPageMode] = useState(true); // paginated vs scrolled
+
+  // UI state
+  const [showToc, setShowToc] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]); // store CFIs
+  const [showNavigation, setShowNavigation] = useState(true);
+  const [lastMouseMove, setLastMouseMove] = useState(Date.now());
+  const [readingProgress, setReadingProgress] = useState(0);
+
+  // Auto-hide controls
+  useEffect(() => {
+    const handleMouseMove = () => {
+      setShowNavigation(true);
+      setLastMouseMove(Date.now());
+    };
+
+    const checkInactivity = setInterval(() => {
+      if (Date.now() - lastMouseMove > 3000) setShowNavigation(false);
+    }, 1000);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchstart', handleMouseMove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchstart', handleMouseMove);
+      clearInterval(checkInactivity);
+    };
+  }, [lastMouseMove]);
+
+  // Apply rendition themes/styles
+  const applyRenditionStyles = (rendition) => {
+    if (!rendition) return;
+
+    // themes
+    try {
+      rendition.themes.register('reader-dark', {
+        body: { 'background': '#0b0b0b !important', 'color': '#e6e6e6 !important' }
+      });
+      rendition.themes.register('reader-light', {
+        body: { 'background': '#ffffff !important', 'color': '#111827 !important' }
+      });
+
+      rendition.themes.select(darkMode ? 'reader-dark' : 'reader-light');
+
+      // dynamic style injection for font size, family, line height
+      rendition.themes.fontSize(`${fontSize}px`);
+      rendition.themes.default({
+        'p': { 'line-height': lineHeight }
+      });
+    } catch (e) {
+      // some epub.js builds may not expose themes the same way; ignore silently
     }
-  ]);
+  };
 
-  // Mock analytics data for books
-  const generateAnalyticsData = (bookId) => {
-    return {
-      bookId,
-      overview: {
-        totalViews: 12500,
-        uniqueReaders: 3200,
-        completionRate: 68,
-        avgReadingTime: '45min',
-        shares: 450
-      },
-      salesData: {
-        daily: [65, 59, 80, 81, 56, 55, 40, 45, 60, 75, 80, 90],
-        monthly: [245, 189, 210, 195, 230, 245, 260, 240, 255, 270, 285, 300],
-        revenue: [735, 472, 630, 585, 690, 735, 780, 720, 765, 810, 855, 900]
-      },
-      readerDemographics: {
-        ageGroups: {
-          '18-24': 25,
-          '25-34': 45,
-          '35-44': 20,
-          '45+': 10
-        },
-        regions: {
-          'North America': 40,
-          'Europe': 30,
-          'Asia': 20,
-          'Other': 10
-        }
-      },
-      quizPerformance: {
-        participationRate: 72,
-        averageScore: 78,
-        topScores: [95, 92, 90, 88, 85],
-        completionRate: 65
+  // Load saved reading position and bookmarks from localStorage
+  useEffect(() => {
+    const savedBookmarks = localStorage.getItem('epub-bookmarks');
+    if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('epub-bookmarks', JSON.stringify(bookmarks));
+  }, [bookmarks]);
+
+  // Save current location
+  useEffect(() => {
+    if (!bookRef.current || !currentLocation) return;
+    try {
+      localStorage.setItem('epub-last-location-' + fileName, JSON.stringify(currentLocation));
+    } catch (e) {
+      console.warn('Could not save location', e);
+    }
+  }, [currentLocation, fileName]);
+
+  // Progress calculation helper
+  const updateProgress = (location) => {
+    if (!bookRef.current || !location) return;
+    try {
+      const percentage = bookRef.current.locations && bookRef.current.locations.percentageFromCfi
+        ? Math.round(bookRef.current.locations.percentageFromCfi(location.start.cfi) * 100)
+        : 0;
+      setReadingProgress(percentage);
+    } catch (e) {
+      // fallback
+      setReadingProgress(0);
+    }
+  };
+
+  // Handle file upload -> instantiate epub.js book & rendition
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.epub')) {
+      setError('Kripya .epub file upload karein');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // cleanup previous
+      if (renditionRef.current) {
+        renditionRef.current.destroy();
+        renditionRef.current = null;
       }
-    };
-  };
+      if (bookRef.current) {
+        try { bookRef.current.destroy(); } catch (e) {}
+        bookRef.current = null;
+      }
 
-  // Analytics Modal Component
-  const AnalyticsModal = ({ book, onClose }) => {
-    const analyticsData = generateAnalyticsData(book.id);
-    const [timeFrame, setTimeFrame] = useState('monthly');
+      const url = URL.createObjectURL(file);
+      const book = ePub(url);
+      bookRef.current = book;
+      setFileName(file.name);
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center p-6 border-b border-gray-200">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Book Analytics</h2>
-              <p className="text-gray-600">{book.title}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
+      // prepare locations (for progress) - build when book loads
+      await book.loaded.metadata; // wait metadata
 
-          <div className="p-6 space-y-6">
-            {/* Overview Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <EyeIcon size={20} className="text-blue-600" />
-                  <span className="text-sm text-blue-600">Views</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900 mt-2">
-                  {analyticsData.overview.totalViews.toLocaleString()}
-                </div>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <UsersIcon size={20} className="text-green-600" />
-                  <span className="text-sm text-green-600">Readers</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900 mt-2">
-                  {analyticsData.overview.uniqueReaders.toLocaleString()}
-                </div>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <TrendingUpIcon size={20} className="text-purple-600" />
-                  <span className="text-sm text-purple-600">Completion</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900 mt-2">
-                  {analyticsData.overview.completionRate}%
-                </div>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <DollarSign size={20} className="text-orange-600" />
-                  <span className="text-sm text-orange-600">Sales</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900 mt-2">
-                  {book.sales}
-                </div>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Share2 size={20} className="text-red-600" />
-                  <span className="text-sm text-red-600">Shares</span>
-                </div>
-                <div className="text-2xl font-bold text-gray-900 mt-2">
-                  {analyticsData.overview.shares}
-                </div>
-              </div>
-            </div>
-
-            {/* Time Frame Selector */}
-            <div className="flex space-x-2">
-              {['daily', 'weekly', 'monthly'].map((frame) => (
-                <button
-                  key={frame}
-                  onClick={() => setTimeFrame(frame)}
-                  className={`px-4 py-2 rounded-lg capitalize ${
-                    timeFrame === frame
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {frame}
-                </button>
-              ))}
-            </div>
-
-            {/* Sales Chart */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Sales Performance</h3>
-              <div className="h-64 flex items-end space-x-1">
-                {analyticsData.salesData[timeFrame].map((value, index) => (
-                  <div key={index} className="flex-1 flex flex-col items-center">
-                    <div
-                      className="w-full bg-gradient-to-t from-blue-500 to-blue-600 rounded-t transition-all duration-300 hover:from-blue-600 hover:to-blue-700"
-                      style={{ height: `${(value / Math.max(...analyticsData.salesData[timeFrame])) * 80}%` }}
-                    ></div>
-                    <div className="text-xs text-gray-500 mt-2">{index + 1}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Reader Demographics */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Reader Demographics</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Age Groups</h4>
-                    {Object.entries(analyticsData.readerDemographics.ageGroups).map(([age, percent]) => (
-                      <div key={age} className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">{age}</span>
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-green-500 h-2 rounded-full"
-                            style={{ width: `${percent}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium w-8 text-right">{percent}%</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Regions</h4>
-                    {Object.entries(analyticsData.readerDemographics.regions).map(([region, percent]) => (
-                      <div key={region} className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">{region}</span>
-                        <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-500 h-2 rounded-full"
-                            style={{ width: `${percent}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium w-8 text-right">{percent}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Quiz Performance */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Quiz Performance</h3>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {analyticsData.quizPerformance.participationRate}%
-                      </div>
-                      <div className="text-sm text-blue-600">Participation</div>
-                    </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {analyticsData.quizPerformance.averageScore}%
-                      </div>
-                      <div className="text-sm text-green-600">Avg Score</div>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-700 mb-2">Top Scores</h4>
-                    <div className="flex space-x-2">
-                      {analyticsData.quizPerformance.topScores.map((score, index) => (
-                        <div key={index} className="flex-1 text-center p-2 bg-gray-50 rounded">
-                          <div className="font-semibold text-gray-900">{score}%</div>
-                          <div className="text-xs text-gray-500">#{index + 1}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Export Options */}
-            <div className="flex justify-end space-x-3">
-              <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <Download size={16} />
-                <span>Export PDF</span>
-              </button>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                <RefreshCw size={16} />
-                <span>Refresh Data</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Promote Modal Component
-  const PromoteModal = ({ book, onClose }) => {
-    const shareableLink = `https://bookhub.com/books/${book.id}`;
-    const referralCode = `BOOKHUB${book.id}REF`;
-
-    const handleCopyLink = async () => {
+      // build locations (creates percentage mapping) — optional but helpful
       try {
-        await navigator.clipboard.writeText(shareableLink);
-        setCopiedLink(true);
-        setTimeout(() => setCopiedLink(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy link:', err);
+        await book.locations.generate(1600);
+      } catch (e) {
+        // ignore if fails
+      }
+
+      // try to get cover
+      try {
+        const coverUrl = await book.coverUrl();
+        if (coverUrl) setCoverImage(coverUrl);
+      } catch (e) {
+        // ignore
+      }
+
+      // load TOC
+      try {
+        const nav = await book.loaded.navigation;
+        if (nav && nav.toc) setToc(nav.toc);
+      } catch (e) {
+        // fallback to empty TOC
+        setToc([]);
+      }
+
+      // create rendition
+      const rendition = book.renderTo(viewerRef.current, {
+        width: '100%',
+        height: '70vh',
+        flow: pageMode ? 'paginated' : 'scrolled',
+        spread: 'none'
+      });
+      renditionRef.current = rendition;
+
+      // apply styles/themes
+      applyRenditionStyles(rendition);
+
+      // display saved location if exists
+      const saved = localStorage.getItem('epub-last-location-' + file.name);
+      if (saved) {
+        try {
+          const loc = JSON.parse(saved);
+          await rendition.display(loc.start.cfi || loc);
+        } catch (e) {
+          await rendition.display();
+        }
+      } else {
+        await rendition.display();
+      }
+
+      // events
+      rendition.on('relocated', (location) => {
+        setCurrentLocation(location); // location contains start/end cfi and displayed range
+        updateProgress(location);
+      });
+
+      rendition.on('rendered', () => {
+        // ensure injected styles (some epubs override css). reapply our dynamic styles
+        applyRenditionStyles(rendition);
+      });
+
+      // handle links inside the rendition
+      rendition.on('click', (e) => {
+        // epub.js already handles internal links, but you can intercept if needed
+      });
+
+      setLoading(false);
+      setError('');
+    } catch (err) {
+      console.error(err);
+      setError('EPUB load me error: ' + (err.message || err));
+      setLoading(false);
+    }
+  };
+
+  // Navigation helpers
+  const next = async () => {
+    if (!renditionRef.current) return;
+    try { await renditionRef.current.next(); } catch (e) {}
+  };
+  const prev = async () => {
+    if (!renditionRef.current) return;
+    try { await renditionRef.current.prev(); } catch (e) {}
+  };
+
+  const goToTocItem = async (href) => {
+    if (!renditionRef.current || !bookRef.current) return;
+    try {
+      await renditionRef.current.display(href);
+      setShowToc(false);
+    } catch (e) {
+      console.warn('TOC navigation failed', e);
+    }
+  };
+
+  // Bookmark (save current CFI)
+  const toggleBookmark = () => {
+    if (!currentLocation) return;
+    const cfi = currentLocation.start.cfi;
+    const exists = bookmarks.find((b) => b.cfi === cfi);
+    if (exists) {
+      setBookmarks(bookmarks.filter(b => b.cfi !== cfi));
+    } else {
+      const title = bookRef.current && bookRef.current.package ? (bookRef.current.package.metadata.title || fileName) : fileName;
+      const bookmark = { cfi, title, created: new Date().toISOString() };
+      setBookmarks([...bookmarks, bookmark]);
+    }
+  };
+
+  const isBookmarked = () => {
+    if (!currentLocation) return false;
+    return bookmarks.some(b => b.cfi === currentLocation.start.cfi);
+  };
+
+  // Search: try to use book.search if available, otherwise fallback to simple message
+  const handleSearch = async () => {
+    if (!searchQuery.trim() || !bookRef.current) return;
+    setSearchResults([]);
+
+    try {
+      if (typeof bookRef.current.search === 'function') {
+        // epub.js search API (if available)
+        const results = await bookRef.current.search(searchQuery);
+        // results usually contain {cfi, excerpt}
+        setSearchResults(results.map(r => ({ cfi: r.cfi, excerpt: r.excerpt })));
+      } else {
+        // fallback: iterate through spine and find text (may be slower)
+        const results = [];
+        const spineItems = bookRef.current.spine && bookRef.current.spine.items ? bookRef.current.spine.items : [];
+        for (const item of spineItems) {
+          try {
+            const text = await item.load(bookRef.current.load.bind(bookRef.current)).then(() => item.document ? (item.document.body.textContent || '') : item.contents || '');
+            if (text && text.toLowerCase().includes(searchQuery.toLowerCase())) {
+              // create a rough excerpt
+              const idx = text.toLowerCase().indexOf(searchQuery.toLowerCase());
+              const start = Math.max(0, idx - 60);
+              const excerpt = (text.substring(start, start + 140)).replace(/\s+/g, ' ').trim();
+              results.push({ cfi: item.cfiBase, excerpt });
+            }
+          } catch (e) { /* ignore */ }
+        }
+        setSearchResults(results);
+      }
+    } catch (err) {
+      console.warn('Search failed', err);
+    }
+  };
+
+  // Jump to search result
+  const goToSearchResult = async (res) => {
+    if (!renditionRef.current) return;
+    const cfi = res.cfi || res;
+    try {
+      await renditionRef.current.display(cfi);
+      setShowSearch(false);
+    } catch (e) { console.warn(e); }
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault(); prev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault(); next();
+      } else if (e.key === 'b' && e.ctrlKey) {
+        e.preventDefault(); toggleBookmark();
+      } else if (e.key === ' ' ) {
+        // space for page down/up in paginated mode
+        if (pageMode) {
+          e.preventDefault(); next();
+        }
       }
     };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [pageMode, currentLocation, bookmarks]);
 
-    const shareOnSocialMedia = (platform) => {
-      const text = `Check out "${book.title}" on BookHub! ${shareableLink}`;
-      let url = '';
-      
-      switch (platform) {
-        case 'twitter':
-          url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-          break;
-        case 'facebook':
-          url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareableLink)}`;
-          break;
-        case 'linkedin':
-          url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareableLink)}`;
-          break;
-        case 'whatsapp':
-          url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-          break;
-      }
-      
-      window.open(url, '_blank', 'width=600,height=400');
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (renditionRef.current) try { renditionRef.current.destroy(); } catch (e) {}
+      if (bookRef.current) try { bookRef.current.destroy(); } catch (e) {}
     };
+  }, []);
 
-    const promotionMaterials = [
-      {
-        title: "Social Media Posts",
-        description: "Pre-written posts for different platforms",
-        content: [
-          `📚 Just published "${book.title}" on BookHub! Check it out and take the quiz to win prizes! ${shareableLink}`,
-          `🔥 New book alert! "${book.title}" is now available. Read, take the quiz, and earn rewards! ${shareableLink}`
-        ]
-      },
-      {
-        title: "Email Template",
-        description: "Template for email marketing",
-        content: [
-          `Subject: Discover "${book.title}" - New on BookHub!\n\nHi there,\n\nI'm excited to share my new book "${book.title}" is now available on BookHub! Read it, take the quiz, and you could win exciting prizes.\n\nGet your copy here: ${shareableLink}\n\nUse referral code: ${referralCode} for special benefits!\n\nBest regards,\n${userData.name}`
-        ]
-      },
-      {
-        title: "Referral Program",
-        description: "Share your unique referral code",
-        content: [
-          `Referral Code: ${referralCode}`,
-          `Share this code with friends for special discounts and rewards!`
-        ]
-      }
-    ];
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center p-6 border-b border-gray-200">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Promote Your Book</h2>
-              <p className="text-gray-600">{book.title}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <div className="p-6 space-y-6">
-            {/* Shareable Link */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900 mb-2">Shareable Link</h3>
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={shareableLink}
-                  readOnly
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-white"
-                />
-                <button
-                  onClick={handleCopyLink}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  {copiedLink ? <CheckCircle size={16} /> : <Copy size={16} />}
-                  <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Share Buttons */}
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-3">Share on Social Media</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <button
-                  onClick={() => shareOnSocialMedia('twitter')}
-                  className="flex items-center justify-center space-x-2 p-3 bg-[#1DA1F2] text-white rounded-lg hover:bg-[#1a8cd8] transition-colors"
-                >
-                  <Twitter size={20} />
-                  <span>Twitter</span>
-                </button>
-                <button
-                  onClick={() => shareOnSocialMedia('facebook')}
-                  className="flex items-center justify-center space-x-2 p-3 bg-[#4267B2] text-white rounded-lg hover:bg-[#365899] transition-colors"
-                >
-                  <Facebook size={20} />
-                  <span>Facebook</span>
-                </button>
-                <button
-                  onClick={() => shareOnSocialMedia('linkedin')}
-                  className="flex items-center justify-center space-x-2 p-3 bg-[#0077B5] text-white rounded-lg hover:bg-[#00669c] transition-colors"
-                >
-                  <Linkedin size={20} />
-                  <span>LinkedIn</span>
-                </button>
-                <button
-                  onClick={() => shareOnSocialMedia('whatsapp')}
-                  className="flex items-center justify-center space-x-2 p-3 bg-[#25D366] text-white rounded-lg hover:bg-[#20bd59] transition-colors"
-                >
-                  <MessageCircle size={20} />
-                  <span>WhatsApp</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Promotion Materials */}
-            <div className="space-y-4">
-              <h3 className="font-semibold text-gray-800">Promotion Materials</h3>
-              {promotionMaterials.map((material, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-1">{material.title}</h4>
-                  <p className="text-sm text-gray-600 mb-3">{material.description}</p>
-                  <div className="space-y-2">
-                    {material.content.map((content, contentIndex) => (
-                      <div key={contentIndex} className="relative">
-                        <textarea
-                          value={content}
-                          readOnly
-                          rows={content.split('\n').length + 1}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-                        />
-                        <button
-                          onClick={() => navigator.clipboard.writeText(content)}
-                          className="absolute top-2 right-2 p-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-                        >
-                          <Copy size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Promotion Tips */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h3 className="font-semibold text-yellow-900 mb-2">Promotion Tips</h3>
-              <ul className="text-sm text-yellow-800 space-y-1">
-                <li>• Share during peak hours (9-11 AM, 7-9 PM)</li>
-                <li>• Use relevant hashtags for better reach</li>
-                <li>• Engage with readers in the comments</li>
-                <li>• Share quiz results and winner announcements</li>
-                <li>• Collaborate with other authors for cross-promotion</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Handler functions for buttons
-  const handleAnalyticsClick = (book) => {
-    setSelectedBookForAnalytics(book);
-    setShowAnalytics(true);
-  };
-
-  const handlePromoteClick = (book) => {
-    setSelectedBookForPromotion(book);
-    setShowPromoteModal(true);
-  };
-
-  // ... (rest of the code remains the same, including BookForm, PublishedBookCard, etc.)
-
-  // Updated PublishedBookCard with button handlers
-  const PublishedBookCard = ({ book, onEdit, onDelete }) => {
-    const getStatusColor = (status) => {
-      return status === 'published' 
-        ? 'bg-green-100 text-green-800 border-green-200' 
-        : 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    };
-
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="text-4xl">{book.cover}</div>
-            <div>
-              <h3 className="font-semibold text-lg text-gray-900">{book.title}</h3>
-              <p className="text-gray-600 text-sm">{book.category}</p>
-              <p className="text-xs text-gray-500 mt-1">{book.pages} pages • {book.language}</p>
-            </div>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => onEdit(book)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Edit3 size={16} className="text-gray-600" />
-            </button>
-            <button
-              onClick={() => onDelete(book.id)}
-              className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <Trash2 size={16} className="text-red-600" />
-            </button>
-          </div>
-        </div>
-
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{book.description}</p>
-
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{book.readers}</div>
-            <div className="text-xs text-gray-600">Readers</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">{book.quizParticipants}</div>
-            <div className="text-xs text-gray-600">Quiz Participants</div>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <div className="text-xl font-bold text-gray-900">₹{book.price}</div>
-            <div className="text-sm text-gray-600">{book.sales} sales</div>
-          </div>
-          <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(book.status)}`}>
-            {book.status}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 text-center text-sm">
-          <div>
-            <div className="font-semibold text-gray-900">₹{book.earnings}</div>
-            <div className="text-gray-600">Earnings</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-900 flex items-center justify-center">
-              <span>{book.rating}</span>
-              <span className="text-yellow-500 ml-1">★</span>
-            </div>
-            <div className="text-gray-600">Rating</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-900">{book.sales}</div>
-            <div className="text-gray-600">Sales</div>
-          </div>
-        </div>
-
-        <div className="flex space-x-2 mt-4">
-          <button 
-            onClick={() => handleAnalyticsClick(book)}
-            className="flex-1 flex items-center justify-center space-x-2 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <BarChart3 size={16} />
-            <span>Analytics</span>
-          </button>
-          <button 
-            onClick={() => handlePromoteClick(book)}
-            className="flex-1 flex items-center justify-center space-x-2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors"
-          >
-            <Share2 size={16} />
-            <span>Promote</span>
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // ... (rest of the component code remains the same)
+  // UI helpers
+  const cardBg = darkMode ? 'bg-gray-800' : 'bg-white';
+  const textColor = darkMode ? 'text-gray-100' : 'text-gray-800';
+  const secondaryText = darkMode ? 'text-gray-400' : 'text-gray-600';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header and main content */}
-        {/* ... (same as before) */}
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-amber-50 to-orange-50'} transition-colors duration-300`}>
+      {/* Header */}
+      <div className={`${cardBg} shadow-md sticky top-0 z-10`}>
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <Book className="w-6 h-6 text-orange-600" />
+              <h1 className={`text-xl font-bold ${textColor}`}>EPUB Viewer</h1>
+            </div>
 
-        {/* Modals */}
-        {showAnalytics && selectedBookForAnalytics && (
-          <AnalyticsModal
-            book={selectedBookForAnalytics}
-            onClose={() => {
-              setShowAnalytics(false);
-              setSelectedBookForAnalytics(null);
-            }}
-          />
+        
+
+            {fileName && (
+              <div className="flex gap-2">
+                <button onClick={() => setShowSearch(s => !s)} className="p-2 bg-blue-600 text-white rounded-lg">
+                  <Search className="w-5 h-5" />
+                </button>
+                <button onClick={toggleBookmark} className={`p-2 ${isBookmarked() ? 'bg-yellow-500' : 'bg-gray-600'} text-white rounded-lg`}>
+                  <Bookmark className="w-5 h-5" />
+                </button>
+                <button onClick={() => setShowSettings(s => !s)} className="p-2 bg-purple-600 text-white rounded-lg">
+                  <Settings className="w-5 h-5" />
+                </button>
+                <button onClick={() => setShowToc(s => !s)} className="p-2 bg-orange-600 text-white rounded-lg">
+                  <Menu className="w-5 h-5" />
+                </button>
+                <label className="p-2 bg-gray-600 text-white rounded-lg cursor-pointer">
+                  <input type="file" accept=".epub" onChange={handleFileUpload} className="hidden" />
+                  <Upload className="w-5 h-5" />
+                </label>
+              </div>
+            )}
+
+            {!fileName && (
+              <label className="px-4 py-2 bg-orange-600 text-white rounded-lg cursor-pointer">
+                <input type="file" accept=".epub" onChange={handleFileUpload} className="hidden" />
+                Select EPUB
+              </label>
+            )}
+          </div>
+
+          {/* progress */}
+          {fileName && (
+            <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+              <div className="bg-orange-600 h-2 rounded-full transition-all duration-300" style={{width: `${readingProgress}%`}} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Search Panel */}
+      {showSearch && fileName && (
+        <div className={`${cardBg} shadow-lg mx-4 mt-4 p-4 rounded-lg max-w-4xl mx-auto`}>
+          <div className="flex gap-2 mb-4">
+            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className={`flex-1 px-4 py-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`} placeholder="Search in book..." />
+            <button onClick={handleSearch} className="px-6 py-2 bg-blue-600 text-white rounded-lg">Search</button>
+          </div>
+
+          {searchResults.length > 0 ? (
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {searchResults.map((res, i) => (
+                <div key={i} onClick={() => goToSearchResult(res)} className={`p-3 rounded cursor-pointer ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}>
+                  <p className="font-semibold text-sm text-orange-600">Result</p>
+                  <p className={`text-sm ${secondaryText}`}>{res.excerpt || res.cfi}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={`${secondaryText}`}>No results yet</div>
+          )}
+        </div>
+      )}
+
+      {/* Settings */}
+      {showSettings && fileName && (
+        <div className={`${cardBg} shadow-lg mx-4 mt-4 p-6 rounded-lg max-w-4xl mx-auto`}>
+          <h3 className={`text-lg font-bold ${textColor} mb-4`}>Reading Settings</h3>
+          <div className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium ${textColor} mb-2`}>Font Size: {fontSize}px</label>
+              <div className="flex gap-2 items-center">
+                <button onClick={() => setFontSize(s => Math.max(12, s - 2))} className="p-2 bg-gray-300 rounded"><ZoomOut className="w-4 h-4" /></button>
+                <input type="range" min="12" max="40" value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} className="flex-1" />
+                <button onClick={() => setFontSize(s => Math.min(40, s + 2))} className="p-2 bg-gray-300 rounded"><ZoomIn className="w-4 h-4" /></button>
+              </div>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium ${textColor} mb-2`}>Line Height: {lineHeight}</label>
+              <input type="range" min="1.2" max="2.5" step="0.1" value={lineHeight} onChange={(e) => setLineHeight(Number(e.target.value))} className="w-full" />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium ${textColor} mb-2`}>Font Family</label>
+              <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className={`w-full px-4 py-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}>
+                <option value="serif">Serif</option>
+                <option value="sans-serif">Sans Serif</option>
+                <option value="monospace">Monospace</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className={`text-sm font-medium ${textColor}`}>Dark Mode</label>
+              <button onClick={() => setDarkMode(d => !d)} className={`p-2 rounded-lg ${darkMode ? 'bg-yellow-500' : 'bg-gray-700'} text-white`}>
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className={`text-sm font-medium ${textColor}`}>Page View Mode</label>
+              <button onClick={() => setPageMode(p => !p)} className={`px-4 py-2 rounded-lg ${pageMode ? 'bg-green-600' : 'bg-gray-400'} text-white`}>
+                {pageMode ? 'ON (Book-like)' : 'OFF (Continuous)'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Viewer area */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {error && (<div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-red-700"><strong>Error:</strong> {error}</div>)}
+
+        {!fileName && (
+          <div className={`${cardBg} rounded-xl shadow-lg p-12 text-center`}>
+            <Book className="w-16 h-16 text-orange-600 mx-auto mb-4" />
+            <h2 className={`text-2xl font-bold ${textColor} mb-2`}>EPUB File Upload Karein</h2>
+            <p className={`${secondaryText} mb-6`}>Apni EPUB file select karein aur padhna shuru karein</p>
+            <label className="inline-block">
+              <input type="file" accept=".epub" onChange={handleFileUpload} className="hidden" />
+              <span className="px-6 py-3 bg-orange-600 text-white rounded-lg cursor-pointer">File Select Karein</span>
+            </label>
+          </div>
         )}
 
-        {showPromoteModal && selectedBookForPromotion && (
-          <PromoteModal
-            book={selectedBookForPromotion}
-            onClose={() => {
-              setShowPromoteModal(false);
-              setSelectedBookForPromotion(null);
-              setCopiedLink(false);
-            }}
-          />
+        {loading && (
+          <div className={`${cardBg} rounded-xl shadow-lg p-12 text-center`}>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-600 mx-auto mb-4"></div>
+            <p className={secondaryText}>EPUB load ho raha hai...</p>
+          </div>
         )}
 
-        {/* Book Form Modal */}
-        {showBookForm && (
-          <BookForm
-            book={editingBook}
-            onSave={handleSaveBook}
-            onClose={() => {
-              setShowBookForm(false);
-              setEditingBook(null);
-            }}
-          />
+        {/* the actual epub.js viewer container */}
+        {!loading && fileName && (
+          <div className="space-y-6">
+            {coverImage && (
+              <div className={`${cardBg} rounded-xl shadow-lg p-8 text-center`}>
+                <img src={coverImage} alt="Cover" className="max-w-sm mx-auto rounded-lg shadow-md" />
+              </div>
+            )}
+
+            <div className={`${cardBg} rounded-lg shadow p-4 flex items-center justify-between`}>
+              <div>
+                <p className={`text-sm ${secondaryText}`}>Current Location</p>
+                <p className={`font-semibold ${textColor}`}>{bookRef.current?.package?.metadata?.title || fileName}</p>
+              </div>
+              <div className={`text-sm ${secondaryText}`}>{readingProgress}%</div>
+            </div>
+
+            <div className={`${cardBg} rounded-xl shadow-lg p-4 md:p-6`}>
+              <div ref={viewerRef} style={{ minHeight: '60vh' }} />
+
+              {/* Navigation controls */}
+              <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-30 transition-all duration-500 ${showNavigation ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20 pointer-events-none'}`}>
+                <div className="flex gap-2 items-center bg-white dark:bg-gray-800 p-3 rounded-2xl shadow-2xl border-2 border-orange-500">
+                  <button onClick={prev} className="flex items-center gap-1 px-3 py-2 bg-orange-600 text-white rounded-lg" title="Previous">
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex gap-1 px-2 border-x-2 border-gray-300">
+                    <button onClick={() => renditionRef.current && renditionRef.current.prev()} className="p-2 bg-blue-600 text-white rounded-lg">↑</button>
+                    <button onClick={() => renditionRef.current && renditionRef.current.next()} className="p-2 bg-blue-600 text-white rounded-lg">↓</button>
+                  </div>
+
+                  <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="p-2 bg-gray-600 text-white rounded-lg">⬆</button>
+
+                  <button onClick={next} className="flex items-center gap-1 px-3 py-2 bg-orange-600 text-white rounded-lg" title="Next">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* TOC sidebar */}
+            {showToc && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 z-20" onClick={() => setShowToc(false)}>
+                <div className={`absolute right-0 top-0 h-full w-80 ${cardBg} shadow-2xl p-6 overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className={`text-xl font-bold ${textColor}`}>Contents</h3>
+                    <button onClick={() => setShowToc(false)}><X className={`w-6 h-6 ${secondaryText}`} /></button>
+                  </div>
+
+                  {bookmarks.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className={`text-sm font-semibold ${textColor} mb-2 flex items-center gap-2`}><Bookmark className="w-4 h-4 text-yellow-500" /> Bookmarks</h4>
+                      <div className="space-y-1 mb-4 pb-4 border-b border-gray-300">
+                        {bookmarks.map((b, i) => (
+                          <button key={i} onClick={() => renditionRef.current.display(b.cfi)} className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-xs ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-yellow-50 text-gray-700'}`}>
+                            <div className="font-medium">{b.title}</div>
+                            <div className="text-xs opacity-60">{new Date(b.created).toLocaleString()}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <h4 className={`text-sm font-semibold ${textColor} mb-2`}>Chapters</h4>
+                  <div className="space-y-2">
+                    {toc.length === 0 && (<div className={secondaryText}>No contents available</div>)}
+                    {toc.map((item, i) => (
+                      <button key={i} onClick={() => goToTocItem(item.href)} className={`w-full text-left px-4 py-3 rounded-lg transition-colors text-sm ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-orange-50 text-gray-700'}`}>
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
         )}
       </div>
+
+      <style>{`
+        /* basic content styling for epub.js iframe content when injected */
+        .epub-content img { max-width: 100%; height: auto; display: block; margin: 20px auto; border-radius: 8px; }
+        .epub-content p { margin-bottom: 1em; text-align: justify; }
+        .epub-content h1, .epub-content h2, .epub-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; }
+      `}</style>
     </div>
   );
-};
-
-export default UserAccountPage;
+}

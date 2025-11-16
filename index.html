@@ -1,38 +1,41 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend title</title>
-  </head>
-  <body>
-    <div id="root"> </div>
-    <script type="module" src="/src/main.jsx"></script>
-    <!--  facebook login -->
-    <!-- <script async defer crossorigin="anonymous" 
-  src="https://connect.facebook.net/en_US/sdk.js"></script> -->
 
-  <!-- Add this script before the closing body tag
-    <script>
-      window.fbAsyncInit = function() {
-        FB.init({
-          appId      : import.meta.env.VITE_FACEBOOK_APP_ID, // Replace with your actual App ID
-          cookie     : true,
-          xfbml      : true,
-          version    : 'v18.0' // Use a valid Facebook Graph API version
-        });
-      };
+<head>
+  <meta charset="UTF-8" />
+  <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>frontend title</title>
 
-      // Load the SDK asynchronously
-      (function(d, s, id) {
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) return;
-        js = d.createElement(s); js.id = id;
-        js.src = "https://connect.facebook.net/en_US/sdk.js";
-        fjs.parentNode.insertBefore(js, fjs);
-      }(document, 'script', 'facebook-jssdk'));
-    </script> -->
 
-  </body>
+
+</head>
+
+<body>
+  <div id="root"> </div>
+  <script type="module" src="/src/main.jsx"></script>
+
+  <!-- <div id="google_translate_element" style="display: none;"></div> -->
+
+    <!-- google translate widget -->
+
+  <!-- <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        {
+          pageLanguage: "en",
+          includedLanguages: "hi,en,bn,ta,te,gu,kn,ml,mr,pa",
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        },
+        "google_translate_element"
+      );
+    }
+  </script>
+
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+ -->
+
+
+</body>
+
 </html>

@@ -36,6 +36,7 @@ import { pdfjs } from 'react-pdf';
 import EpubViewer from './components/book/EpubViewer'
 import Viewer from './components/book/Viewer'
 import Read from './components/book/read'
+import TestPage from './pages/TestPage'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -94,6 +95,7 @@ function App() {
           <Route path='/read' element={<Read/>} />
           {/* 404 Page */}
           <Route path="*" element={<NotFoundPage />} />
+          <Route path="/test" element={<TestPage />} />
         </Routes>
 
         <FeedbackWidget />

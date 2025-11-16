@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Book, ChevronLeft, ChevronRight, Menu, X, Upload, Search, Settings, Bookmark, Moon, Sun, Type, ZoomIn, ZoomOut } from 'lucide-react';
+import GoogleTranslate from './GoogleTranslate';
+import useGoogleTranslate from '../../assets/hooks/useGoogleTranslate';
 
 export default function Read() {
   const [epubContent, setEpubContent] = useState(null);
@@ -16,7 +18,7 @@ export default function Read() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearch, setShowSearch] = useState(false);
-  
+
   // Reading settings
   const [fontSize, setFontSize] = useState(18);
   const [darkMode, setDarkMode] = useState(false);
@@ -29,8 +31,13 @@ export default function Read() {
   const [slideDirection, setSlideDirection] = useState(''); // 'left', 'right', or ''
   const [showNavigation, setShowNavigation] = useState(true); // Auto-hide navigation
   const [lastMouseMove, setLastMouseMove] = useState(Date.now());
-  
+
   const contentRef = useRef(null);
+
+
+  // for google translate hook
+
+
 
   // Auto-hide navigation after 3 seconds of inactivity
   useEffect(() => {
@@ -100,19 +107,19 @@ export default function Read() {
   // Search functionality
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
-    
+
     const results = [];
     chapters.forEach((chapter, index) => {
       const content = chapter.content.toLowerCase();
       const query = searchQuery.toLowerCase();
-      
+
       if (content.includes(query)) {
         // Find context around match
         const position = content.indexOf(query);
         const start = Math.max(0, position - 50);
         const end = Math.min(content.length, position + query.length + 50);
         const context = chapter.content.substring(start, end).replace(/<[^>]*>/g, '');
-        
+
         results.push({
           chapterIndex: index,
           chapterTitle: chapter.title,
@@ -120,7 +127,7 @@ export default function Read() {
         });
       }
     });
-    
+
     setSearchResults(results);
   };
 
@@ -131,7 +138,7 @@ export default function Read() {
       title: chapters[currentChapter]?.title,
       timestamp: new Date().toLocaleString()
     };
-    
+
     const exists = bookmarks.findIndex(b => b.chapter === currentChapter);
     if (exists >= 0) {
       setBookmarks(bookmarks.filter((_, i) => i !== exists));
@@ -145,7 +152,7 @@ export default function Read() {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     if (!file.name.endsWith('.epub')) {
       setError('Kripya ek valid EPUB file select karein (.epub extension)');
       return;
@@ -153,7 +160,7 @@ export default function Read() {
 
     setLoading(true);
     setError('');
-    
+
     try {
       // JSZip load karein
       if (!window.JSZip) {
@@ -165,10 +172,10 @@ export default function Read() {
           document.head.appendChild(script);
         });
       }
-      
+
       const arrayBuffer = await file.arrayBuffer();
       const zip = await window.JSZip.loadAsync(arrayBuffer);
-      
+
       // Container.xml se root file ka path nikaalo
       let containerXml;
       try {
@@ -176,14 +183,14 @@ export default function Read() {
       } catch (err) {
         throw new Error('META-INF/container.xml nahi mili - invalid EPUB file');
       }
-      
+
       const rootfileMatch = containerXml.match(/full-path="([^"]+)"/);
       if (!rootfileMatch) {
         throw new Error('Container.xml mein rootfile path nahi mila');
       }
-      
+
       const rootfilePath = rootfileMatch[1];
-      
+
       // Content.opf file padhein
       let contentOpf;
       try {
@@ -191,9 +198,9 @@ export default function Read() {
       } catch (err) {
         throw new Error(`Content file nahi mili: ${rootfilePath}`);
       }
-      
+
       const basePath = rootfilePath.substring(0, rootfilePath.lastIndexOf('/') + 1);
-      
+
       // Cover image nikalo
       const coverMatch = contentOpf.match(/<meta\s+name="cover"\s+content="([^"]+)"/i);
       if (coverMatch) {
@@ -214,7 +221,7 @@ export default function Read() {
           }
         }
       }
-      
+
       // CSS files load karein
       const cssMatches = [...contentOpf.matchAll(/<item[^>]+href="([^"]+\.css)"[^>]*>/gi)];
       let allCss = '';
@@ -231,49 +238,49 @@ export default function Read() {
         }
       }
       setCssContent(allCss);
-      
+
       // Manifest banao
       const manifestMatches = [...contentOpf.matchAll(/<item[^>]+id="([^"]+)"[^>]+href="([^"]+)"[^>]*>/g)];
       const manifestMap = {};
       manifestMatches.forEach(match => {
         manifestMap[match[1]] = match[2];
       });
-      
+
       // Spine se chapters ka order nikaalo
       const spineMatches = [...contentOpf.matchAll(/idref="([^"]+)"/g)];
-      
+
       // Chapter mapping banao
       const hrefToIndex = {};
-      
+
       // Chapters load karein
       const loadedChapters = [];
-      
+
       for (const match of spineMatches) {
         const href = manifestMap[match[1]];
         if (!href || (!href.endsWith('.html') && !href.endsWith('.xhtml'))) continue;
-        
+
         const fullPath = basePath + href;
-        
+
         // Store mapping
         hrefToIndex[href] = loadedChapters.length;
         hrefToIndex[fullPath] = loadedChapters.length;
         hrefToIndex['../' + href] = loadedChapters.length;
         hrefToIndex[href.split('/').pop()] = loadedChapters.length;
-        
+
         try {
           const chapterFile = zip.file(fullPath);
           if (!chapterFile) continue;
-          
+
           const content = await chapterFile.async('text');
           const chapterBasePath = fullPath.substring(0, fullPath.lastIndexOf('/') + 1);
-          
+
           // Images ko base64 mein convert karein
           let processedContent = content;
           const imgMatches = [...content.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)];
-          
+
           for (const imgMatch of imgMatches) {
             const originalSrc = imgMatch[1];
-            
+
             const possiblePaths = [
               originalSrc.startsWith('/') ? originalSrc.substring(1) : originalSrc,
               chapterBasePath + originalSrc,
@@ -285,7 +292,7 @@ export default function Read() {
               'OEBPS/Images/' + originalSrc.split('/').pop(),
               'OEBPS/images/' + originalSrc.split('/').pop(),
             ];
-            
+
             for (const tryPath of possiblePaths) {
               try {
                 const imgFile = zip.file(tryPath);
@@ -301,7 +308,7 @@ export default function Read() {
                     'webp': 'image/webp'
                   };
                   const mimeType = mimeTypes[ext] || 'image/png';
-                  
+
                   const base64Src = `data:${mimeType};base64,${imgData}`;
                   const escapedSrc = originalSrc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                   processedContent = processedContent.replace(
@@ -313,11 +320,11 @@ export default function Read() {
               } catch (err) {}
             }
           }
-          
+
           // Body content extract karein
           const bodyMatch = processedContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
           let bodyContent = bodyMatch ? bodyMatch[1] : processedContent;
-          
+
           // Internal links ko data attribute dein
           bodyContent = bodyContent.replace(/<a\s+([^>]*)href=["']([^"']+)["']([^>]*)>/gi, (match, before, href, after) => {
             if (/^https?:\/\//i.test(href)) {
@@ -325,12 +332,12 @@ export default function Read() {
             }
             return `<a ${before}href="#" data-epub-href="${href}"${after} class="epub-internal-link">`;
           });
-          
+
           // Title extract karein - multiple methods try karein
           let title = '';
-          
+
         //   console.log('Extracting title for chapter', loadedChapters.length + 1);
-          
+
           // Method 1: <title> tag
           const titleMatch = content.match(/<title>([^<]+)<\/title>/i);
           if (titleMatch && titleMatch[1].trim() && 
@@ -339,7 +346,7 @@ export default function Read() {
             title = titleMatch[1].trim();
             // console.log('Title from <title> tag:', title);
           }
-          
+
           // Method 2: <h1>, <h2>, <h3> tags from body
           if (!title) {
             const h1Match = bodyContent.match(/<h1[^>]*>([^<]+)<\/h1>/i);
@@ -348,7 +355,7 @@ export default function Read() {
             //   console.log('Title from <h1>:', title);
             }
           }
-          
+
           if (!title) {
             const h2Match = bodyContent.match(/<h2[^>]*>([^<]+)<\/h2>/i);
             if (h2Match && h2Match[1].trim()) {
@@ -356,7 +363,7 @@ export default function Read() {
             //   console.log('Title from <h2>:', title);
             }
           }
-          
+
           if (!title) {
             const h3Match = bodyContent.match(/<h3[^>]*>([^<]+)<\/h3>/i);
             if (h3Match && h3Match[1].trim()) {
@@ -364,7 +371,7 @@ export default function Read() {
             //   console.log('Title from <h3>:', title);
             }
           }
-          
+
           // Method 3: First strong/bold text
           if (!title) {
             const strongMatch = bodyContent.match(/<(?:strong|b)[^>]*>([^<]+)<\/(?:strong|b)>/i);
@@ -373,20 +380,20 @@ export default function Read() {
             //   console.log('Title from <strong>:', title);
             }
           }
-          
+
           // Method 4: First paragraph text (first 60 chars)
           if (!title) {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = bodyContent;
             const textContent = tempDiv.textContent || tempDiv.innerText || '';
             const cleanText = textContent.trim().replace(/\s+/g, ' ');
-            
+
             if (cleanText.length > 5) {
               title = cleanText.substring(0, 60).trim();
               if (cleanText.length > 60) title += '...';
             }
           }
-          
+
           // Method 5: Use filename
           if (!title) {
             const filename = href.split('/').pop().replace(/\.(html|xhtml)$/i, '');
@@ -395,33 +402,33 @@ export default function Read() {
             //   console.log('Title from filename:', title);
             }
           }
-          
+
           // Method 6: Fallback to chapter number
           if (!title || title.toLowerCase() === 'unknown') {
             title = `Chapter ${loadedChapters.length + 1}`;
             // console.log('Title fallback to chapter number:', title);
           }
-          
+
           loadedChapters.push({
             title: title,
             content: bodyContent,
             href: href
           });
-          
+
         } catch (err) {
           console.error('Chapter load error:', err);
         }
       }
-      
+
       if (loadedChapters.length === 0) {
         throw new Error('Koi readable chapters nahi mile');
       }
-      
+
       setChapters(loadedChapters);
       setChapterMap(hrefToIndex);
       setCurrentChapter(0);
       setEpubContent(file.name);
-      
+
     } catch (error) {
       console.error('EPUB parse error:', error);
       setError(error.message || 'File load karne mein error aaya');
@@ -433,20 +440,20 @@ export default function Read() {
   // Handle internal link clicks
   useEffect(() => {
     if (!contentRef.current) return;
-    
+
     const handleLinkClick = (e) => {
       const link = e.target.closest('a');
       if (!link) return;
-      
+
       const dataHref = link.getAttribute('data-epub-href');
       const regularHref = link.getAttribute('href');
-      
+
       if (dataHref) {
         e.preventDefault();
-        
+
         if (dataHref !== '#') {
           const [filePath, anchor] = dataHref.split('#');
-          
+
           if (!filePath && anchor) {
             const targetElement = document.getElementById(anchor);
             if (targetElement) {
@@ -454,18 +461,18 @@ export default function Read() {
               return;
             }
           }
-          
+
           const variations = [
             filePath || dataHref,
             '../' + (filePath || dataHref),
             (filePath || dataHref).replace(/\.\.\//g, ''),
             (filePath || dataHref).split('/').pop()
           ];
-          
+
           for (const variant of variations) {
             if (chapterMap[variant] !== undefined) {
               setCurrentChapter(chapterMap[variant]);
-              
+
               if (anchor) {
                 setTimeout(() => {
                   const targetElement = document.getElementById(anchor);
@@ -484,9 +491,9 @@ export default function Read() {
         }
       } else if (regularHref && regularHref !== '#' && !regularHref.startsWith('http')) {
         e.preventDefault();
-        
+
         const [filePath, anchor] = regularHref.split('#');
-        
+
         if (!filePath && anchor) {
           const targetElement = document.getElementById(anchor);
           if (targetElement) {
@@ -495,9 +502,9 @@ export default function Read() {
         }
       }
     };
-    
+
     contentRef.current.addEventListener('click', handleLinkClick, true);
-    
+
     return () => {
       if (contentRef.current) {
         contentRef.current.removeEventListener('click', handleLinkClick, true);
@@ -530,16 +537,16 @@ export default function Read() {
   const nextPage = () => {
     if (pageMode && contentRef.current) {
       setSlideDirection('left'); // Slide out to left
-      
+
       setTimeout(() => {
         const pageHeight = contentRef.current.clientHeight;
         const currentScroll = contentRef.current.scrollTop;
-        
+
         contentRef.current.scrollTo({ 
           top: currentScroll + pageHeight, 
           behavior: 'smooth' 
         });
-        
+
         // Reset animation after scroll
         setTimeout(() => setSlideDirection(''), 300);
       }, 50);
@@ -549,16 +556,16 @@ export default function Read() {
   const prevPage = () => {
     if (pageMode && contentRef.current) {
       setSlideDirection('right'); // Slide out to right
-      
+
       setTimeout(() => {
         const pageHeight = contentRef.current.clientHeight;
         const currentScroll = contentRef.current.scrollTop;
-        
+
         contentRef.current.scrollTo({ 
           top: Math.max(0, currentScroll - pageHeight), 
           behavior: 'smooth' 
         });
-        
+
         // Reset animation after scroll
         setTimeout(() => setSlideDirection(''), 300);
       }, 50);
@@ -629,7 +636,7 @@ export default function Read() {
           title: chapters[currentChapter]?.title,
           timestamp: new Date().toLocaleString()
         };
-        
+
         const exists = bookmarks.findIndex(b => b.chapter === currentChapter);
         if (exists >= 0) {
           setBookmarks(bookmarks.filter((_, i) => i !== exists));
@@ -641,7 +648,7 @@ export default function Read() {
           e.preventDefault();
           const pageHeight = window.innerHeight * 0.7;
           const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-          
+
           if (e.shiftKey) {
             window.scrollTo({ top: Math.max(0, currentScroll - pageHeight), behavior: 'smooth' });
           } else {
@@ -663,7 +670,7 @@ export default function Read() {
   return (
     <div className={`min-h-screen ${bgColor} transition-colors duration-300`}>
       {cssContent && <style dangerouslySetInnerHTML={{ __html: cssContent }} />}
-      
+
       {/* Header */}
       <div className={`${cardBg} shadow-md sticky top-0 z-10`}>
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -672,7 +679,10 @@ export default function Read() {
               <Book className="w-6 h-6 text-orange-600" />
               <h1 className={`text-xl font-bold ${textColor}`}>EPUB Viewer</h1>
             </div>
-            
+
+            {/* google translate widget */}
+            <GoogleTranslate/>
+{/* <div id="google_translate_element"  style={{display: 'none'}}></div> */}
             {epubContent && (
               <div className="flex gap-2">
                 <button
@@ -713,7 +723,7 @@ export default function Read() {
               </div>
             )}
           </div>
-          
+
           {/* Progress Bar */}
           {epubContent && (
             <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
@@ -745,7 +755,7 @@ export default function Read() {
               Search
             </button>
           </div>
-          
+
           {searchResults.length > 0 && (
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {searchResults.map((result, i) => (
@@ -771,7 +781,7 @@ export default function Read() {
       {showSettings && epubContent && (
         <div className={`${cardBg} shadow-lg mx-4 mt-4 p-6 rounded-lg max-w-4xl mx-auto`}>
           <h3 className={`text-lg font-bold ${textColor} mb-4`}>Reading Settings</h3>
-          
+
           <div className="space-y-4">
             {/* Font Size */}
             <div>
@@ -795,7 +805,7 @@ export default function Read() {
                 </button>
               </div>
             </div>
-            
+
             {/* Line Height */}
             <div>
               <label className={`block text-sm font-medium ${textColor} mb-2`}>
@@ -811,7 +821,7 @@ export default function Read() {
                 className="w-full"
               />
             </div>
-            
+
             {/* Font Family */}
             <div>
               <label className={`block text-sm font-medium ${textColor} mb-2`}>Font Family</label>
@@ -825,7 +835,7 @@ export default function Read() {
                 <option value="monospace">Monospace (Code)</option>
               </select>
             </div>
-            
+
             {/* Dark Mode */}
             <div className="flex items-center justify-between">
               <label className={`text-sm font-medium ${textColor}`}>Dark Mode</label>
@@ -836,7 +846,7 @@ export default function Read() {
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
             </div>
-            
+
             {/* Page Mode Toggle */}
             <div className="flex items-center justify-between">
               <label className={`text-sm font-medium ${textColor}`}>Page View Mode</label>
@@ -858,7 +868,7 @@ export default function Read() {
             <strong>Error:</strong> {error}
           </div>
         )}
-        
+
         {!epubContent ? (
           <div className={`${cardBg} rounded-xl shadow-lg p-12 text-center`}>
             <Book className="w-16 h-16 text-orange-600 mx-auto mb-4" />
@@ -897,7 +907,7 @@ export default function Read() {
                 />
               </div>
             )}
-            
+
             {/* Chapter Info */}
             <div className={`${cardBg} rounded-lg shadow p-4 flex items-center justify-between`}>
               <div>
@@ -927,11 +937,11 @@ export default function Read() {
               onClick={(e) => {
                 // Mobile tap zones - only in page mode
                 if (!pageMode || window.innerWidth > 768) return;
-                
+
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const width = rect.width;
-                
+
                 // Left 1/3 = previous page
                 if (clickX < width / 3) {
                   prevPage();
@@ -956,7 +966,7 @@ export default function Read() {
                   fontFamily: fontFamily
                 }}
               />
-              
+
               {/* Mobile tap zone indicators - only show briefly */}
               {pageMode && window.innerWidth <= 768 && showNavigation && (
                 <div className="absolute inset-0 pointer-events-none md:hidden">
@@ -996,7 +1006,7 @@ export default function Read() {
                   <ChevronLeft className="w-4 h-4" />
                   <span className="hidden md:inline">Ch</span>
                 </button>
-                
+
                 {/* Page Navigation (Only in Page Mode) */}
                 {pageMode && (
                   <div className="flex gap-1 px-2 border-x-2 border-gray-300">
@@ -1016,7 +1026,7 @@ export default function Read() {
                     </button>
                   </div>
                 )}
-                
+
                 {/* Scroll to Top */}
                 <button
                   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -1025,7 +1035,7 @@ export default function Read() {
                 >
                   ⬆
                 </button>
-                
+
                 {/* Chapter Navigation */}
                 <button
                   onClick={nextChapter}
@@ -1038,7 +1048,7 @@ export default function Read() {
                 </button>
               </div>
             </div>
-            
+
             {/* Side Navigation for Page Mode - Auto-hide */}
             {pageMode && (
               <>
@@ -1052,7 +1062,7 @@ export default function Read() {
                 >
                   ←
                 </button>
-                
+
                 {/* Right Side Page Nav */}
                 <button
                   onClick={nextPage}
@@ -1065,7 +1075,7 @@ export default function Read() {
                 </button>
               </>
             )}
-            
+
             {/* Show Navigation Hint - Different for mobile/desktop */}
             {!showNavigation && epubContent && (
               <div className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-30 animate-pulse">
@@ -1092,7 +1102,7 @@ export default function Read() {
                 <X className={`w-6 h-6 ${secondaryText}`} />
               </button>
             </div>
-            
+
             {/* Bookmarks Section */}
             {bookmarks.length > 0 && (
               <div className="mb-6">
@@ -1124,7 +1134,7 @@ export default function Read() {
                 </div>
               </div>
             )}
-            
+
             {/* Chapters List */}
             <h4 className={`text-sm font-semibold ${textColor} mb-2`}>Chapters</h4>
             <div className="space-y-2">
@@ -1149,7 +1159,7 @@ export default function Read() {
           </div>
         </div>
       )}
-      
+
       {/* Additional CSS for EPUB content */}
       <style>{`
         .epub-content img {
@@ -1183,7 +1193,7 @@ export default function Read() {
         .epub-content a[target="_blank"]:hover {
           color: #1d4ed8;
         }
-        
+
         /* Page Slide Animations */
         @keyframes slideOutLeft {
           0% {
@@ -1195,7 +1205,7 @@ export default function Read() {
             opacity: 0.7;
           }
         }
-        
+
         @keyframes slideInFromRight {
           0% {
             transform: translateX(20px);
@@ -1206,7 +1216,7 @@ export default function Read() {
             opacity: 1;
           }
         }
-        
+
         @keyframes slideOutRight {
           0% {
             transform: translateX(0);
@@ -1217,7 +1227,7 @@ export default function Read() {
             opacity: 0.7;
           }
         }
-        
+
         @keyframes slideInFromLeft {
           0% {
             transform: translateX(-20px);
@@ -1228,11 +1238,11 @@ export default function Read() {
             opacity: 1;
           }
         }
-        
+
         .page-slide-left {
           animation: slideOutLeft 0.2s ease-out, slideInFromRight 0.3s ease-in 0.2s;
         }
-        
+
         .page-slide-right {
           animation: slideOutRight 0.2s ease-out, slideInFromLeft 0.3s ease-in 0.2s;
         }
@@ -1240,3 +1250,8 @@ export default function Read() {
     </div>
   );
 }
+
+
+
+//////////////////////////////////////////////////////////////
+

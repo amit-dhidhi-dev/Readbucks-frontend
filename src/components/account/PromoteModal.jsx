@@ -1,11 +1,11 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { X, Copy, CheckCircle, Twitter, Facebook, Linkedin, MessageCircle } from 'lucide-react';
 
-function PromoteModal({ book, userData, onClose }) {
+function PromoteModal({ book, userData, onClose, isShare = false }) {
 
-      const [copiedLink, setCopiedLink] = useState(false);
+    const [copiedLink, setCopiedLink] = useState(false);
 
-    const shareableLink = `https://bookhub.com/books/${book.id}`;
+    const shareableLink = `${import.meta.env.VITE_WEBSITE_URL}/books/${book.id}`;
     const referralCode = `BOOKHUB${book.id}REF`;
 
     const handleCopyLink = async () => {
@@ -45,7 +45,7 @@ function PromoteModal({ book, userData, onClose }) {
             title: "Social Media Posts",
             description: "Pre-written posts for different platforms",
             content: [
-                `📚 Just published "${book.title}" on BookHub! Check it out and take the quiz to win prizes! ${shareableLink}`,
+                `📚 Just published "${book.title}" on ${import.meta.env.VITE_WEBSITE_NAME}! Check it out and take the quiz to win prizes! ${shareableLink}`,
                 `🔥 New book alert! "${book.title}" is now available. Read, take the quiz, and earn rewards! ${shareableLink}`
             ]
         },
@@ -53,7 +53,7 @@ function PromoteModal({ book, userData, onClose }) {
             title: "Email Template",
             description: "Template for email marketing",
             content: [
-                `Subject: Discover "${book.title}" - New on BookHub!\n\nHi there,\n\nI'm excited to share my new book "${book.title}" is now available on BookHub! Read it, take the quiz, and you could win exciting prizes.\n\nGet your copy here: ${shareableLink}\n\nUse referral code: ${referralCode} for special benefits!\n\nBest regards,\n${userData.name}`
+                `Subject: Discover "${book.title}" - New on BookHub!\n\nHi there,\n\nI'm excited to share my new book "${book.title}" is now available on BookHub! Read it, take the quiz, and you could win exciting prizes.\n\nGet your copy here: ${shareableLink}\n\nUse referral code: ${referralCode} for special benefits!\n\nBest regards,\n${userData?.name || 'unknown'}`
             ]
         },
         {
@@ -73,7 +73,7 @@ function PromoteModal({ book, userData, onClose }) {
                 <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                     <div className="flex justify-between items-center p-6 border-b border-gray-200">
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">Promote Your Book</h2>
+                            <h2 className="text-xl font-semibold text-gray-900">{isShare ? <>Share</>  : <>Promote</>} Your Book</h2>
                             <p className="text-gray-600">{book.title}</p>
                         </div>
                         <button
@@ -141,45 +141,52 @@ function PromoteModal({ book, userData, onClose }) {
                         </div>
 
                         {/* Promotion Materials */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold text-gray-800">Promotion Materials</h3>
-                            {promotionMaterials.map((material, index) => (
-                                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                                    <h4 className="font-semibold text-gray-800 mb-1">{material.title}</h4>
-                                    <p className="text-sm text-gray-600 mb-3">{material.description}</p>
-                                    <div className="space-y-2">
-                                        {material.content.map((content, contentIndex) => (
-                                            <div key={contentIndex} className="relative">
-                                                <textarea
-                                                    value={content}
-                                                    readOnly
-                                                    rows={content.split('\n').length + 1}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-                                                />
-                                                <button
-                                                    onClick={() => navigator.clipboard.writeText(content)}
-                                                    className="absolute top-2 right-2 p-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-                                                >
-                                                    <Copy size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
+                        {!isShare &&
+                            <div className="space-y-4">
+                                <h3 className="font-semibold text-gray-800">Promotion Materials</h3>
+                                {promotionMaterials.map((material, index) => (
+                                    <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                        <h4 className="font-semibold text-gray-800 mb-1">{material.title}</h4>
+                                        <p className="text-sm text-gray-600 mb-3">{material.description}</p>
+                                        <div className="space-y-2">
+                                            {material.content.map((content, contentIndex) => (
+                                                <div key={contentIndex} className="relative">
+                                                    <textarea
+                                                        value={content}
+                                                        readOnly
+                                                        rows={content.split('\n').length + 1}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+                                                    />
+                                                    <button
+                                                        onClick={() => navigator.clipboard.writeText(content)}
+                                                        className="absolute top-2 right-2 p-1 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                                                    >
+                                                        <Copy size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>}
+
+
+
 
                         {/* Promotion Tips */}
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <h3 className="font-semibold text-yellow-900 mb-2">Promotion Tips</h3>
-                            <ul className="text-sm text-yellow-800 space-y-1">
-                                <li>• Share during peak hours (9-11 AM, 7-9 PM)</li>
-                                <li>• Use relevant hashtags for better reach</li>
-                                <li>• Engage with readers in the comments</li>
-                                <li>• Share quiz results and winner announcements</li>
-                                <li>• Collaborate with other authors for cross-promotion</li>
-                            </ul>
-                        </div>
+                        {!isShare &&
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h3 className="font-semibold text-yellow-900 mb-2">Promotion Tips</h3>
+                                <ul className="text-sm text-yellow-800 space-y-1">
+                                    <li>• Share during peak hours (9-11 AM, 7-9 PM)</li>
+                                    <li>• Use relevant hashtags for better reach</li>
+                                    <li>• Engage with readers in the comments</li>
+                                    <li>• Share quiz results and winner announcements</li>
+                                    <li>• Collaborate with other authors for cross-promotion</li>
+                                </ul>
+                            </div>}
+
+
                     </div>
                 </div>
             </div>

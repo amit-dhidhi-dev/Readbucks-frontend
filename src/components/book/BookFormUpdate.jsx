@@ -148,11 +148,6 @@ const BookFormUpdate = ({ book = null, onSuccess, onCancel }) => {
         }
     };
 
-    // Check if current step is valid
-    // const isStepValid = (step = currentStep) => {
-    //     const validationErrors = stepValidations[step]();
-    //     return Object.keys(validationErrors).length === 0;
-    // };
 
     // Mark field as touched
     const handleBlur = (fieldName) => {

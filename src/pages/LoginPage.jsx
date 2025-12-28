@@ -4,7 +4,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook, FaSpinner } from 'react-icons/fa';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectIsAuthenticated } from '../features/auth/authSlice';
 
@@ -27,6 +27,11 @@ const LoginPage = () => {
     }
   }, [navigate, isAuthenticated])
 
+  const location = useLocation();
+  // Get the previous page from state or default to account page
+  const from = location.state?.from?.pathname || (import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+
+
 
   // Google Login Handler
   const handleGoogleLogin = useGoogleLogin({
@@ -46,7 +51,9 @@ const LoginPage = () => {
 
         alert("Login successful!");
         // Optionally navigate to a different page or update UI
-        navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+        // navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+        // 🔹 Navigate back to previous page
+        navigate(from, { replace: true });
       } catch (error) {
         // console.error("Google sign in error:", error);
 
@@ -130,7 +137,9 @@ const LoginPage = () => {
             .then(res => {
               // 🔹 Optionally save in Redux or localStorage
               localStorage.setItem("user", JSON.stringify(res.data));
-              navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+              // navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+              // 🔹 Navigate back to previous page
+              navigate(from, { replace: true });
               // console.log("User:", res.data);
               // alert(`Welcome ${res.data}`);
             })
@@ -152,6 +161,7 @@ const LoginPage = () => {
           setLoading(prev => ({ ...prev, facebook: false }));
         } else {
           alert("Facebook login cancelled.");
+           setLoading(prev => ({ ...prev, facebook: false }));
         }
       },
       { scope: "public_profile,email" }
@@ -180,7 +190,9 @@ const LoginPage = () => {
         : await axios.post(`${import.meta.env.VITE_API_BASE_URL}users/register`, form);
 
       localStorage.setItem("user", JSON.stringify(response.data));
-      navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+      // navigate(import.meta.env.VITE_ACCOUNT_PAGE || '/my-account');
+      // 🔹 Navigate back to previous page
+      navigate(from, { replace: true });
 
       setLoading(prev => ({ ...prev, email: false }));
     } catch (error) {

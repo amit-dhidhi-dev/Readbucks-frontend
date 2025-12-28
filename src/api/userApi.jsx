@@ -1,4 +1,5 @@
 import axios from "axios";
+import { SiAnsys } from "react-icons/si";
 
 // ✅ Create a reusable userAPI object
 export const userApi = {
@@ -18,7 +19,15 @@ export const userApi = {
     );
   },
 
-
+  addPurchaseHistory: async (token, history) =>{
+    return axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/users/purchase-history`,
+      history,
+      {
+        params: {token: token}
+      }
+    )
+  },
 
 };
 

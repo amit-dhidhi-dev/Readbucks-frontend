@@ -26,6 +26,15 @@ export const bookService = {
     return apiService.get(`/books/${bookId}`);
   },
 
+   async getBookByIdNotSigned(bookId) {
+    // console.log('inside book service')
+    return apiService.getPublicUrl(`/book/${bookId}`);
+  },
+
+   async getBookDetailsById(bookId) {
+    // console.log('inside book service')
+    return apiService.getPublicUrl(`/book_detail/${bookId}`);
+  },
   // Create new book (admin only)
   async createBook(bookData) {
     return apiService.post('/books/', bookData);

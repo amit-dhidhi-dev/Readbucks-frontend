@@ -22,6 +22,9 @@ function Navbars() {
       }
     };
 
+    checkTokenExp(JSON.parse(localStorage.getItem('user'))?.access_token || null);
+
+
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("touchstart", handleClickOutside); // 👈 added for mobile
 
@@ -30,8 +33,31 @@ function Navbars() {
       document.removeEventListener("touchstart", handleClickOutside);
     };
   }, []);
-  
-  
+
+
+  const checkTokenExp = (token) => {
+    if (!token) {
+      return;
+    }
+    const tokenExpiry = getTokenExpiry(token);
+    if (tokenExpiry && tokenExpiry < Date.now()) {
+      // logout();
+      localStorage.removeItem('user');
+    }
+  }
+
+  const getTokenExpiry = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000; // Convert to milliseconds
+    } catch {
+      return null;
+    }
+  };
+
+
+
+
   // handle logout
   const handleLogout = () => {
     dispatch(logout());
@@ -84,15 +110,15 @@ function Navbars() {
 
           {/* Icons */}
           <div className="flex items-center space-x-4 ml-4" ref={menuRef}>
-            <button className="relative hover:text-[#F4B942] transition">
+            {/* <button className="relative hover:text-[#F4B942] transition">
               <Link to={import.meta.env.VITE_NOTIFICATION_PAGE}><Bell className="w-6 h-6" /></Link>
               <span className="absolute -top-2 -right-2 bg-[#FF6A3D] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">2</span>
-            </button>
+            </button> */}
 
             <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="hover:text-[#F4B942] transition">
               {isAuthenticated ? (!JSON.parse(localStorage.getItem('user')).profile_picture ? <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white  font-bold">
                 {JSON.parse(localStorage.getItem('user')).name?.charAt(0).toUpperCase()}
-            </div>: <img src={JSON.parse(localStorage.getItem('user')).profile_picture} alt="User" className="w-6 h-6 rounded-full" />) : <User className="w-6 h-6" />}
+              </div> : <img src={JSON.parse(localStorage.getItem('user')).profile_picture} alt="User" className="w-6 h-6 rounded-full" />) : <User className="w-6 h-6" />}
             </button>
 
             {/* when user icon clicked */}

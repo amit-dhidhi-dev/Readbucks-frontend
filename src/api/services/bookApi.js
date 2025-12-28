@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 
 class ApiService {
   constructor() {
-    this.token =  JSON.parse(localStorage.getItem('user')).access_token || null;
+    this.token = JSON.parse(localStorage.getItem('user'))?.access_token || null;
   }
 
   setToken(token) {
@@ -15,18 +15,18 @@ class ApiService {
     const headers = {
       'Content-Type': 'application/json',
     };
-    
+
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
-    
+
     return headers;
   }
 
   async handleResponse(response) {
     if (!response.ok) {
       const error = await response.json();
-      // console.log("resoponse",(response))
+      console.log("resoponse", (response))
       throw new Error(error.detail || 'Something went wrong');
     }
     return response.json();
@@ -38,6 +38,17 @@ class ApiService {
       headers: this.getHeaders(),
     });
     return this.handleResponse(response);
+  }
+
+  async getPublicUrl(url) {
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return this.handleResponse(response)
   }
 
   async post(url, data) {

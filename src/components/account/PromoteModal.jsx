@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Copy, CheckCircle, Twitter, Facebook, Linkedin, MessageCircle } from 'lucide-react';
 
-function PromoteModal({ book, userData, onClose, isShare = false }) {
+function PromoteModal({ book, userData=null, onClose, isShare = false }) {
 
     const [copiedLink, setCopiedLink] = useState(false);
 

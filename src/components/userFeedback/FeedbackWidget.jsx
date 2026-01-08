@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Send, Lightbulb, Bug, Heart, Star, Check } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const FeedbackWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,7 +32,7 @@ const FeedbackWidget = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const feedbackData = {
       type: feedbackType,
       message,
@@ -45,7 +46,7 @@ const FeedbackWidget = () => {
       // Yahan aap API call karenge
       console.log('Feedback submitted:', feedbackData);
       setSubmitted(true);
-      
+
       // 3 second baad automatically close ho jaye
       setTimeout(() => {
         setIsOpen(false);
@@ -57,6 +58,14 @@ const FeedbackWidget = () => {
       console.error('Feedback submission failed:', error);
     }
   };
+
+  const location = useLocation();
+  const hideFeedbackRoutes = [import.meta.env.VITE_LOGIN_PAGE, '/epub'];
+
+  if (hideFeedbackRoutes.includes(location.pathname)) {
+    return null;
+  }
+
 
   return (
     <>
@@ -80,7 +89,7 @@ const FeedbackWidget = () => {
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b">
                   <h2 className="text-xl font-bold text-gray-900">Share Your Feedback</h2>
-                  <button 
+                  <button
                     onClick={() => setIsOpen(false)}
                     className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                   >
@@ -101,16 +110,14 @@ const FeedbackWidget = () => {
                           key={type.id}
                           type="button"
                           onClick={() => setFeedbackType(type.id)}
-                          className={`p-4 border-2 rounded-lg text-left transition-all ${
-                            feedbackType === type.id
+                          className={`p-4 border-2 rounded-lg text-left transition-all ${feedbackType === type.id
                               ? 'border-purple-500 bg-purple-50'
                               : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center">
-                            <div className={`p-2 rounded-lg mr-3 ${
-                              feedbackType === type.id ? 'bg-purple-100' : 'bg-gray-100'
-                            }`}>
+                            <div className={`p-2 rounded-lg mr-3 ${feedbackType === type.id ? 'bg-purple-100' : 'bg-gray-100'
+                              }`}>
                               {type.icon}
                             </div>
                             <div>
@@ -156,11 +163,11 @@ const FeedbackWidget = () => {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder={
-                        feedbackType === 'suggestion' 
+                        feedbackType === 'suggestion'
                           ? 'What improvements would you like to see?'
                           : feedbackType === 'bug'
-                          ? 'Please describe the issue you encountered...'
-                          : 'What do you love about our platform?'
+                            ? 'Please describe the issue you encountered...'
+                            : 'What do you love about our platform?'
                       }
                       rows="4"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"

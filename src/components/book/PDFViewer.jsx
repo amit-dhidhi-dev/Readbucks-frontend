@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import useTOCExtractor from '../../assets/hooks/useTOCExtractor';
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.js',
@@ -15,20 +15,11 @@ const PDFViewer = ({ pdfUrl }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scale, setScale] = useState(1.0);
-  //  const [toc, setToc] = useState([]);
-  const [pdfDoc, setPdfDoc] = useState();
-  // pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-
-
-  // TOC extractor hook use karein
-  const { toc, loading: tocLoading } = useTOCExtractor(pdfDoc);
-
 
   function onDocumentLoadSuccess(document) {
     setNumPages(document.numPages);
     setLoading(false);
     setError(null);
-    setPdfDoc(document)
     console.log('document', document)
   }
 
@@ -63,181 +54,19 @@ const PDFViewer = ({ pdfUrl }) => {
     setPageNumber(page);
   };
 
- const [copying, setCopying] = useState(false);
-
-
- // Ye function current page ka text extract karega aur copy karega
-  async function handleCopyText() {
-    if (!pdfDoc) return;
-    setCopying(true);
-    try {
-      const page = await pdfDoc.getPage(pageNumber);
-      const textContent = await page.getTextContent();
-
-      const pageText = textContent.items.map(item => item.str).join(' ');
-      await navigator.clipboard.writeText(pageText);
-       
-      console.log('copy data text',pageText)
-      alert("✅ Page text copied to clipboard!");
-    } catch (err) {
-      console.error("Error copying text:", err);
-      alert("❌ Failed to copy text.");
-    }
-    setCopying(false);
-  }
 
 
 
 
-  // return (
-  //   <div className="bg-white rounded-lg shadow-lg p-4">
-  //     {/* Controls */}
-  //     <div className="flex flex-wrap items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
-  //       <div className="flex items-center space-x-2">
-  //         <button
-  //           onClick={goToPreviousPage}
-  //           disabled={pageNumber <= 1}
-  //           className="px-3 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
-  //         >
-  //           Previous
-  //         </button>
 
-  //         <span className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium">
-  //           Page <span className="font-bold">{pageNumber}</span> of <span className="font-bold">{numPages || '--'}</span>
-  //         </span>
-
-  //         <button
-  //           onClick={goToNextPage}
-  //           disabled={pageNumber >= numPages}
-  //           className="px-3 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
-  //         >
-  //           Next
-  //         </button>
-  //       </div>
-
-  //       <div className="flex items-center space-x-2 mt-2 md:mt-0">
-  //         <button
-  //           onClick={zoomOut}
-  //           disabled={scale <= 0.5}
-  //           className="px-3 py-2 bg-gray-200 rounded-lg disabled:bg-gray-100 disabled:text-gray-400 hover:bg-gray-300 transition-colors"
-  //         >
-  //           Zoom Out
-  //         </button>
-
-  //         <span className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium min-w-[60px] text-center">
-  //           {Math.round(scale * 100)}%
-  //         </span>
-
-  //         <button
-  //           onClick={zoomIn}
-  //           disabled={scale >= 3.0}
-  //           className="px-3 py-2 bg-gray-200 rounded-lg disabled:bg-gray-100 disabled:text-gray-400 hover:bg-gray-300 transition-colors"
-  //         >
-  //           Zoom In
-  //         </button>
-
-  //         <button
-  //           onClick={resetZoom}
-  //           className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-  //         >
-  //           Reset
-  //         </button>
-  //       </div>
-  //     </div>
-
-  //     {/* Loading State */}
-  //     {loading && (
-  //       <div className="flex justify-center items-center py-12">
-  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-  //         <span className="ml-3 text-gray-600">Loading PDF...</span>
-  //       </div>
-  //     )}
-
-  //     {/* Error State */}
-  //     {error && (
-  //       <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-  //         <div className="text-red-600 font-medium">{error}</div>
-  //         <button
-  //           onClick={() => window.location.reload()}
-  //           className="mt-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-  //         >
-  //           Retry
-  //         </button>
-  //       </div>
-  //     )}
-
-  //     {/* PDF Document */}
-  //     {!error && (
-  //       <div className="flex justify-center border border-gray-200 rounded-lg overflow-auto bg-gray-100 min-h-[500px]">
-  //         <Document
-  //           file={pdfUrl}
-  //           onLoadSuccess={onDocumentLoadSuccess}
-  //           onLoadError={onDocumentLoadError}
-  //           onItemClick={({ pageNumber }) => setPageNumber(pageNumber)}
-  //           loading={
-  //             <div className="flex justify-center items-center py-12">
-  //               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-  //             </div>
-  //           }
-  //         >
-  //           <Page
-  //             pageNumber={pageNumber}
-  //             scale={scale}
-  //             loading={
-  //               <div className="flex justify-center items-center py-8">
-  //                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-  //               </div>
-  //             }
-  //             className="shadow-lg"
-  //           />
-  //         </Document>
-  //       </div>
-  //     )}
-
-  //     {/* Mobile Friendly Pagination */}
-  //     <div className="flex justify-center mt-4 md:hidden">
-  //       <div className="flex space-x-2">
-  //         <button
-  //           onClick={goToPreviousPage}
-  //           disabled={pageNumber <= 1}
-  //           className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 text-sm"
-  //         >
-  //           ← Prev
-  //         </button>
-  //         <button
-  //           onClick={goToNextPage}
-  //           disabled={pageNumber >= numPages}
-  //           className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-300 text-sm"
-  //         >
-  //           Next →
-  //         </button>
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-2 sm:p-4 md:p-6">
 
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl mb-4 sm:mb-6 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-3 sm:py-4">
-            <h1 className="text-white text-xl sm:text-2xl font-bold flex items-center">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              PDF Viewer
-            </h1>
-          </div>
+        <div className="bg-white rounded-2xl shadow-xl mb-4 sm:mb-6 overflow-hidden">       
 
-          <button
-            onClick={handleCopyText}
-            disabled={copying}
-            className="px-3 py-1 bg-blue-500 text-white rounded"
-          >
-            {copying ? "Copying..." : "📋 Copy Page Text"}
-          </button>
 
           {/* Desktop Controls */}
           <div className="hidden md:flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
@@ -472,17 +301,7 @@ const PDFViewer = ({ pdfUrl }) => {
 
 
         </div>
-        {tocLoading ? (
-          <p>Extracting TOC...</p>
-        ) : (
-          <ul>
-            {toc.map((item, i) => (
-              <li key={i} style={{ marginLeft: `${item.level * 20}px` }}>
-                {item.title} — Page {item.pageNumber}
-              </li>
-            ))}
-          </ul>
-        )}
+
         {/* Footer Info */}
         <div className="mt-4 text-center text-gray-500 text-xs sm:text-sm">
           <p>Use zoom controls to adjust view • Navigate with Previous/Next buttons</p>
@@ -490,6 +309,8 @@ const PDFViewer = ({ pdfUrl }) => {
       </div>
     </div>
   );
+
+
 
 };
 

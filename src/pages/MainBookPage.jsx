@@ -55,8 +55,6 @@ const MainBooksPage = () => {
   
   const { books, loading, error, pagination, refetch } = useMainBooks(fetchParams);
 
-  console.log("fetched books ->",books)
-console.log("params ->", fetchParams)
 
   // Update fetch params when filters or page change
   useEffect(() => {
@@ -137,15 +135,7 @@ console.log("params ->", fetchParams)
     navigate(import.meta.env.VITE_BOOK_DETAILS_PAGE.replace(":bookId", book.id));
   };
 
-  const handleAddToCart = (book) => {
-    console.log('Add to cart:', book);
-    // Implement cart logic
-  };
-
-  const handlePreview = (book) => {
-    console.log('Preview book:', book);
-    // Implement preview logic
-  };
+  
 
   const handleLibraryClick = () => {
     navigate(`${import.meta.env.VITE_ACCOUNT_PAGE}?tab=library`);
@@ -359,8 +349,6 @@ console.log("params ->", fetchParams)
               books={processedBooks}
               viewMode={viewMode}
               onBookClick={handleBookClick}
-              onAddToCart={handleAddToCart}
-              onPreview={handlePreview}
             />
 
             {/* No Results State */}

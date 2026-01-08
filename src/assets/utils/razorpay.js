@@ -16,8 +16,10 @@ const loadScript = (src) => {
 
 import axios from "axios";
 
-export const displayRazorpay = async (amount, productName, onSuccess, onError, setLoading) => {
-  setLoading(true);
+export const displayRazorpay = async (amount, productName, onSuccess, onError, setLoading = null, setLoadingStates = null, bookId = null) => {
+
+  setLoading ? setLoading(true) : null;
+  setLoadingStates ? setLoadingStates(prev => ({ ...prev, [bookId]: true })) : null;
 
   try {
 
@@ -30,8 +32,9 @@ export const displayRazorpay = async (amount, productName, onSuccess, onError, s
     const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
 
     if (!res) {
-      alert('Razorpay SDK failed to load');
-      setLoading(false);
+      alert('Razorpay SDK failed to load');      
+      setLoading ? setLoading(false) : null;
+      setLoadingStates ? setLoadingStates(prev => ({ ...prev, [bookId]: false })) : null;
       return;
     }
 
@@ -46,12 +49,14 @@ export const displayRazorpay = async (amount, productName, onSuccess, onError, s
     if (!data.success) {
       throw new Error('Failed to create order');
     }
+    
+    const appName = import.meta.env.VITE_APP_NAME || 'ReadBucks';
 
     const options = {
       key: data.key, // Razorpay key
       amount: data.amount.toString(),
       currency: data.currency,
-      name: 'ReadBucks',
+      name: appName,
       description: productName || 'Product Purchase',
       image: '/logo.png', // Your logo
       order_id: data.order_id,
@@ -75,17 +80,6 @@ export const displayRazorpay = async (amount, productName, onSuccess, onError, s
           // alert('Payment verification failed');
         }
       },
-      // prefill: {
-      //   name: 'John Doe',
-      //   email: 'john@example.com',
-      //   contact: '9999999999'
-      // },
-      // notes: {
-      //   address: 'Your address'
-      // },
-      // theme: {
-      //   color: '#3399cc'
-      // }
     };
 
     const paymentObject = new window.Razorpay(options);
@@ -98,6 +92,7 @@ export const displayRazorpay = async (amount, productName, onSuccess, onError, s
     }
     alert('Payment initialization failed');
   } finally {
-    setLoading(false);
+    setLoading ? setLoading(false) : null;
+    setLoadingStates ? setLoadingStates(prev => ({ ...prev, [bookId]: false })) : null;
   }
 };

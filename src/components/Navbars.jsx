@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, User, Heart, Search, Menu, X, Book, Bell } from 'lucide-react';
+import { User, Search, Menu, X, Book } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAuthenticated, logout } from '../features/auth/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 
 function Navbars() {
@@ -64,6 +64,15 @@ function Navbars() {
     navigate(import.meta.env.VITE_LOGIN_PAGE);
   }
 
+  // hide navbar in book reading page 
+  const location = useLocation();
+  const hideFeedbackRoutes = [import.meta.env.VITE_LOGIN_PAGE, import.meta.env.VITE_READ_BOOK_PAGE];
+
+  if (hideFeedbackRoutes.includes(location.pathname)) {
+    return null;
+  }
+
+
   return (
     <nav className="bg-[#1A2238] text-white sticky top-0 z-50 shadow-lg">
       {/* Top Bar */}
@@ -101,8 +110,8 @@ function Navbars() {
           <div className="hidden md:flex items-center space-x-6 ">
             <Link to={import.meta.env.VITE_HOME_PAGE} className="hover:text-[#F4B942] transition">Home</Link>
             <Link to={import.meta.env.VITE_BOOKS_PAGE} className="hover:text-[#F4B942] transition">Books</Link>
-            <Link to={import.meta.env.VITE_QUIZ_PAGE} className="hover:text-[#F4B942] transition">Quiz</Link>
-            <Link to={import.meta.env.VITE_LEADERBOARD_PAGE} className="hover:text-[#F4B942] transition">Leaderboard</Link>
+            {/* <Link to={import.meta.env.VITE_QUIZ_PAGE} className="hover:text-[#F4B942] transition">Quiz</Link> */}
+            {/* <Link to={import.meta.env.VITE_LEADERBOARD_PAGE} className="hover:text-[#F4B942] transition">Leaderboard</Link> */}
             <Link to={import.meta.env.VITE_ABOUT_PAGE} className="hover:text-[#F4B942] transition">About</Link>
             <Link to={import.meta.env.VITE_CONTACT_PAGE} className="hover:text-[#F4B942] transition">Contact</Link>
             <Link to={import.meta.env.VITE_SUGGESTIONS_PAGE} className="hover:text-[#F4B942] transition">Suggestion</Link>
@@ -124,18 +133,11 @@ function Navbars() {
             {/* when user icon clicked */}
             {isUserMenuOpen && (
               <div onClick={() => setIsUserMenuOpen(false)} className="absolute right-0 mt-42 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                <Link to={import.meta.env.VITE_NOTIFICATION_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Notification
-                </Link>
+
                 <Link to={import.meta.env.VITE_ACCOUNT_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                   My Account
                 </Link>
-                <Link to={import.meta.env.VITE_CART_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Add to Cart
-                </Link>
-                <Link to={import.meta.env.VITE_WISHLIST_PAGE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  Wishlist
-                </Link>
+
 
                 <div className="border-t my-1"></div>
 

@@ -57,7 +57,20 @@ const ProfessionalBookComponent = () => {
 
                 const userData = await getUserData(token);
                 // console.log("User Data in Payment Success Page:", userData);
-                setUser(userData.data);
+                const data = userData.data;
+                setUser(data);
+                //  check user purchase book or not
+                if (book && book.price > 0) {
+                    if (data) {
+                        const obj = data.purchase_history?.find(book => book.book_id === bookId)
+                        if (!obj) {
+                            // if obj not find then redirect to books page
+                            navigate(import.meta.env.VITE_BOOKS_PAGE)
+                        }
+                    }
+                }
+
+
             } catch (error) {
                 console.error("Error in useEffect:", error);
             } finally {
@@ -69,7 +82,7 @@ const ProfessionalBookComponent = () => {
     }, [navigate]);
 
     if (!loading) {
-        console.log("User State in Payment Success Page:", user);
+        // console.log("User State in Payment Success Page:", user);
 
     }
 
@@ -164,28 +177,28 @@ const ProfessionalBookComponent = () => {
                 </div>
 
                 {/* Success Banner */}
-                {(book?.price < 0 && book?.price ==0) &&
-                <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-4 sm:p-6 mb-6 lg:mb-8 shadow-lg">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div className="flex items-start sm:items-center">
-                            <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white mr-3 sm:mr-4 flex-shrink-0 mt-1 sm:mt-0" />
-                            <div>
-                                <h3 className="text-lg sm:text-xl font-semibold text-white mb-1">
-                                    Purchase Successful!
-                                </h3>
-                                <p className="text-green-100 text-sm sm:text-base">
-                                    Thank you for your purchase. The book is now available in your library.
-                                </p>
+                {book?.price > 0 &&
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-4 sm:p-6 mb-6 lg:mb-8 shadow-lg">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-start sm:items-center">
+                                <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white mr-3 sm:mr-4 flex-shrink-0 mt-1 sm:mt-0" />
+                                <div>
+                                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-1">
+                                        Purchase Successful!
+                                    </h3>
+                                    <p className="text-green-100 text-sm sm:text-base">
+                                        Thank you for your purchase. The book is now available in your library.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="w-full sm:w-auto">
+                                <span className="inline-block bg-white/20 px-3 sm:px-4 py-2 rounded-lg text-white font-medium text-sm sm:text-base w-full sm:w-auto text-center">
+                                    Transaction ID: {(user?.purchase_history?.find(obj => obj.book_id == bookId).transaction_id) || Math.random().toString(36).substring(2, 10).toUpperCase()}
+                                </span>
                             </div>
                         </div>
-                        <div className="w-full sm:w-auto">
-                            <span className="inline-block bg-white/20 px-3 sm:px-4 py-2 rounded-lg text-white font-medium text-sm sm:text-base w-full sm:w-auto text-center">
-                                Transaction ID: {(user?.purchase_history?.find(obj => obj.book_id == bookId).transaction_id) || Math.random().toString(36).substring(2, 10).toUpperCase()}
-                            </span>
-                        </div>
                     </div>
-                </div>
-                 } 
+                }
 
                 {/* Main Content */}
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden">

@@ -3,9 +3,9 @@ import {
   BookOpen,
   Users,
   Calendar,
-  FileText  
+  FileText
 } from 'lucide-react';
-import {  FaEye, FaShoppingBag, FaShare, FaBook } from 'react-icons/fa';
+import { FaEye, FaShoppingBag, FaShare, FaBook } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useBook } from '../assets/hooks/useBook';
 import PromoteModal from '../components/account/PromoteModal';
@@ -56,9 +56,10 @@ const BookDetailsPage = () => {
           "book_reading_progress": 0.0,
         }
 
-        console.log('book_dict', book_dict);
+        // console.log('book_dict', book_dict);
 
         await userApi.addBookToUserLibrary(token, book_dict);
+
 
       } catch (error) {
         console.error("Error adding book to library:", error);
@@ -66,13 +67,14 @@ const BookDetailsPage = () => {
 
 
 
-      navigate(import.meta.env.VITE_BOOK_DETAILS_PAGE.replace(":bookId", book.id));
+      // navigate to book read page
+      navigate(import.meta.env.VITE_READ_BOOK_PAGE.replace(':bookId', book.id))
     }
   }
 
 
 
- const handlePaymentSuccess = async (response) => {
+  const handlePaymentSuccess = async (response) => {
     // console.log('Payment successful:', response);
     // Save payment details to your database
     // Update user subscription/purchase
@@ -116,6 +118,7 @@ const BookDetailsPage = () => {
       dispatch(fetchUserData())
     }
   }, [dispatch, isAuthenticated]);
+
 
 
   return (
@@ -165,13 +168,13 @@ const BookDetailsPage = () => {
                   </div>
                 )}
 
-               
+
               </div>
 
 
               {/* Action Buttons */}
               <div className="space-y-3 my-6">
-                <button onClick={() => { displayRazorpay(book?.discount_price || book?.price, book?.title, handlePaymentSuccess, handlePaymentError, setLoading) }} disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
+                <button onClick={() => { isAuthenticated ? displayRazorpay(book?.discount_price || book?.price, book?.title, handlePaymentSuccess, handlePaymentError, setLoading) : navigate(import.meta.env.VITE_LOGIN_PAGE) }} disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3">
                   {loading ? 'Processing...' : <>
                     <FaShoppingBag className="text-lg" />
                     <span>Buy Now for ₹{book?.discount_price || book?.price}</span>

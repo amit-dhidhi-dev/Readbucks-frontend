@@ -1,8 +1,18 @@
 import React from 'react'
 import { Book, Facebook, Instagram, Twitter, Youtube, MapPin, Phone, Mail } from 'lucide-react'
+import { useLocation } from 'react-router-dom';
 
 function Footer() {
   const appName = import.meta.env.VITE_WEBSITE_NAME;
+
+  const location = useLocation();
+  const hideFeedbackRoutes = [import.meta.env.VITE_LOGIN_PAGE, '/epub'];
+
+  if (hideFeedbackRoutes.includes(location.pathname)) {
+    return null;
+  }
+
+
   return (
     <>
       <footer className="bg-[#1A2238] text-white">
@@ -32,7 +42,7 @@ function Footer() {
                 <li><a href={import.meta.env.VITE_HOME_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">Home</a></li>
                 <li><a href={import.meta.env.VITE_BOOKS_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">Books</a></li>
                 <li><a href={import.meta.env.VITE_QUIZCONTEST_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">Quiz Contests</a></li>
-                <li><a href={import.meta.env.VITE_LEADERBOARD_PAGE}  className="text-gray-300 hover:text-[#FF6A3D] transition">Leaderboard</a></li>
+                <li><a href={import.meta.env.VITE_LEADERBOARD_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">Leaderboard</a></li>
                 <li><a href={import.meta.env.VITE_ACCOUNT_PAGE} className="text-gray-300 hover:text-[#FF6A3D] transition">My Account</a></li>
               </ul>
             </div>

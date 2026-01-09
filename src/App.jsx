@@ -27,6 +27,8 @@ import { pdfjs } from 'react-pdf';
 import TestPage from './pages/TestPage'
 import MainBooksPage from './pages/MainBookPage'
 import PaymentSuccessPage from './pages/PaymentSuccessPage'
+import SearchBar from './search/SearchBar'
+import SearchPage from './search/SearchPage'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -70,7 +72,14 @@ function App() {
           <Route path={import.meta.env.VITE_EDIT_BOOK_PAGE} element={<BookManagement />} />
           <Route path={import.meta.env.VITE_PAYMENT_SUCCESS_PAGE} element={<PaymentSuccessPage />} />
 
-         
+
+
+          {/* for search engines */}
+          <Route path="/bar" element={<SearchBar />} />
+          <Route path="/search-page" element={<SearchPage />} />
+
+
+
 
           {/* 404 Page */}
           <Route path="*" element={<NotFoundPage />} />

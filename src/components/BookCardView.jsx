@@ -13,12 +13,18 @@ import { displayRazorpay } from '../assets/utils/razorpay';
 const BooksCardView = ({
   books,
   onBookClick,
+  searchBook=false,
   viewMode = 'grid' // 'grid' or 'list'
 }) => {
 
 
   // when preview or read button click
   const navigate = useNavigate();
+
+  if(searchBook && books.length > 0){
+    books = books.map(book => ({
+     ... book, id: book._id}))
+  }
 
 
   const [share, setShare] = React.useState(false);
@@ -201,7 +207,7 @@ const BooksCardView = ({
 
               {/* Meta Info */}
               <div className="flex justify-between text-xs text-gray-500 mb-4">
-                <span>{book.pages} pages</span>
+                <span>{book.total_pages} pages</span>
                 <span>{book.language}</span>
                 <span>{book.categories[0]}</span>
               </div>
@@ -315,7 +321,7 @@ const BooksCardView = ({
                       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 hidden">
                         <div className="flex flex-col items-center text-blue-400">
                           <FaBook className="text-2xl mb-1" />
-                          <span className="text-xs">Cover Image</span>
+                          <span className="text-xs">{import.meta.env.VITE_WEBSITE_NAME}</span>
                         </div>
                       </div>
                     </>

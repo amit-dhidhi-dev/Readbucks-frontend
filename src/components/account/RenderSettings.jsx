@@ -16,8 +16,8 @@ function RenderSettings({ userData }) {
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Membership</h3>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                         <div>
-                            <p className="text-gray-600">Current Plan: <span className="font-semibold">{userData.membership}</span></p>
-                            <p className="text-sm text-gray-500">Member since {userData.joinDate}</p>
+                            <p className="text-gray-600">Current Plan: <span className="font-semibold">{userData.membership_tier}</span></p>
+                            <p className="text-sm text-gray-500">Member since {new Date(userData.created_at).toLocaleString()} </p>
                         </div>
                         <button onClick={() => setIsModalOpen(true)} className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-200 w-full sm:w-auto">
                             Upgrade Plan

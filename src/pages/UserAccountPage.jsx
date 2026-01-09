@@ -73,15 +73,7 @@ const UserAccountPage = () => {
 
 
   // Mock user data
-  const [userData, setUserData] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    membership: 'Premium',
-    joinDate: '2024-01-15',
-    quizPoints: 1250,
-    walletBalance: 2500,
-    readingStreak: 15
-  });
+  const [userData, setUserData] = useState();
 
   // Dashboard stats data
   const dashboardStats = {
@@ -105,9 +97,20 @@ const UserAccountPage = () => {
     }
   };
 
+
+  const getCurrentUser = async()=>{
+    try {
+      const token = JSON.parse(localStorage.getItem('user'))?.access_token;
+      const res = await userApi.getCurrentUser(token);
+      setUserData(res.data)
+    } catch (error) {
+      console.error('error while fetching user data', error)
+    }
+  }
+
   useEffect(() => {
     getUserLibrary();
-    
+    getCurrentUser();
   }, []);
 
     
@@ -479,7 +482,7 @@ const UserAccountPage = () => {
           onClose={() => {
             setShowPromoteModal(false);
             setSelectedBookForPromotion(null);
-            setCopiedLink(false);
+           
           }}
         />
       )}

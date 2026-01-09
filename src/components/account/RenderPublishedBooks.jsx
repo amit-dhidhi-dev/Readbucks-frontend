@@ -12,7 +12,6 @@ function RenderPublishedBooks({ setEditingBook, setShowBookForm, handleAnalytics
     const { books: publishedBooks, loading: bookLoading, error: bookError, refetch } = useUserBooks();
 
 
-
     // mock data for published books stats
     // const [publishedBooks, setPublishedBooks] = useState([
     //     {
@@ -143,8 +142,9 @@ function RenderPublishedBooks({ setEditingBook, setShowBookForm, handleAnalytics
                 {/* Books Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {publishedBooks?.map((book) => (
+
                         <PublishedBookCard
-                            key={book.id}
+                            key={book._id}
                             book={book}
                             onEdit={handleEditBook}
                             onDelete={() => handleDeleteBook(book)}
